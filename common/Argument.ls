@@ -29,7 +29,7 @@ class Argument.Literal extends Argument
   @register 0
 
   compile: -> +@val
-  resolve: -> @val
+  get:     -> @val
 
 class Argument.Pointer extends Argument
 
@@ -44,21 +44,24 @@ class Argument.LiteralPointer extends Argument.Pointer
   @register 1
 
   compile: -> @val
-  resolve: -> @Ram.get8 @val
+  get:     -> Ram.get8 @val
+  set:     -> Ram.set8 @val, it
 
 class Argument.RegisterPointer extends Argument.Pointer
 
   @register 2
 
   compile: -> TrueRegister[@val].typeFlag
-  resolve: -> TrueRegister[@val]
+  get:     -> Ram.get8 TrueRegister.regsArr[@val].val
+  set:     -> Ram.set8 TrueRegister.regsArr[@val].val, it
 
 class Argument.Register extends Argument
 
   @register 3
 
   compile: -> TrueRegister[@val].typeFlag
-  resolve: -> TrueRegister[@val]
+  get:     -> TrueRegister.regsArr[@val].val
+  set:     -> TrueRegister.regsArr[@val].val = it
 
 module.exports = Argument
 

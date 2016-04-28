@@ -22,17 +22,20 @@ class Instruction
 
     @nbArgs = @flags .&. 3
 
+    types = []
     for i from 0 til @nbArgs
-      @args.push type: (@flags .&. (3 .<<. 2 * (i + 1))) .>>. 2 * (i + 1)
+      types.push (@flags .&. (3 .<<. 2 * (i + 1))) .>>. 2 * (i + 1)
 
     @size = @nbArgs + 2
 
-    @decodeArgs!
+    @decodeArgs types
+    @process!
 
   decodeArgs: ->
-    res = []
-    for arg in @args
-      res.push Argument.read arg.type, arg
+    for type, i in it
+      @args.push Argument.read(type, Ram.get8 @addr + i + 2)
+
+  process: -> ...
 
   @read = ->
     if not (res = @opsArr[Ram.get8 it])?

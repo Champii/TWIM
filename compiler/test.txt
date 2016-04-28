@@ -1,4 +1,2 @@
-put b [b]
-put 0 22
-put [34] 2
-put [42] 2 a
+put 31 a
+put 42 [a]

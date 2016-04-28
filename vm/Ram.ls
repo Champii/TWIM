@@ -27,7 +27,8 @@ class Ram
     let i = i
       @::[\set + (i * 8)] = (addr, val) ->
         [til i]
-          |> each ~> @data[addr + it] = (val .&. (8 .<<. (8 * i))) .>>. (8 * i)
+          |> each ~>
+            @data[addr + it] = (val .&. (255 .<<. (8 * it))) .>>. (8 * it)
 
 
 module.exports = new Ram

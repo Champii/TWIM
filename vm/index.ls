@@ -38,13 +38,7 @@ class Twio
     if !(0 <= @regs.ip.val < Ram.SIZE)
       new Fault "ip out of range"
 
-  # put byte reg
-  /*put: ->
-    [byte, reg] = @ram[@regs.ip.val + 1, @regs.ip.val + 2]
-    @regs[@regsIdx[reg]] = byte
-    2
-
-  load: ->
+  /*load: ->
     [reg, addr] = @ram[@regs.ip.val + 1, @regs.ip.val + 2]
     @ram[addr] = @regs[@regsIdx[reg]]
     2

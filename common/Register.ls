@@ -1,6 +1,7 @@
 class Register
 
   @regs = {}
+  @regsArr = []
 
   (@name) ->
     @val = 0
@@ -19,6 +20,7 @@ class Register
       |> pairs-to-obj
 
     @ <<< @regs
+    @regsArr = [null].concat values @regs
     @
 
 class Register.A extends Register
