@@ -59,6 +59,7 @@ class Instruction
   @register = ->
     @op = it
     @::op = it
+    @_compile = Instruction._compile
     @opsArr[it] = @ops[@displayName.toLowerCase!] = @
 
   @compile = ([op, ...args]) ->
@@ -66,6 +67,12 @@ class Instruction
       new Fault "Unknown opcode: #{op}"
 
     @ops[op]._compile map Argument.create, args
+
+  @_compile = (args) ->
+    res = [@op]
+    res.push @makeFlags args
+    res = res.concat map (.compile!), args
+    res
 
 # Load every instructions
 fs.readdir __dirname, (err, list) ->

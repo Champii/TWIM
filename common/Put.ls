@@ -8,20 +8,21 @@ class Nop extends Instruction
   @register 0
 
   ->
+
   process: ->
 
-# put byte reg
+# put src dest
 class Put extends Instruction
 
   @register 1
 
-  process: ->
-    @args.1.set @args.0.get!
+  process: -> @args.1.set @args.0.get!
 
-  @_compile = (args) ->
-    res = [@op]
-    res.push @makeFlags args
-    res = res.concat map (.compile!), args
-    res
+# aff val
+class Aff extends Instruction
+
+  @register 2
+
+  process: -> console.log String.fromCharCode @args.0.get!
 
 module.exports = Put
