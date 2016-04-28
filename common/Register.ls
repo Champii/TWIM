@@ -1,0 +1,45 @@
+class Register
+
+  @regs = {}
+
+  (@name) ->
+    @val = 0
+
+  compile: ->
+
+  @register = ->
+    @typeFlag = it
+    @::typeFlag = it
+    @regs[@displayName.toLowerCase!] = @
+
+  @instantiate = ->
+    @regs = @regs
+      |> obj-to-pairs
+      |> map -> [it.0, new it.1 it.1.displayName]
+      |> pairs-to-obj
+
+    @ <<< @regs
+    @
+
+class Register.A extends Register
+
+  @register 1
+
+class Register.B extends Register
+
+  @register 2
+
+class Register.C extends Register
+
+  @register 3
+
+class Register.D extends Register
+
+  @register 4
+
+class Register.IP extends Register
+
+  @register 5
+
+
+module.exports = Register.instantiate!

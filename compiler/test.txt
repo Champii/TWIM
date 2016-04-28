@@ -1,0 +1,4 @@
+put b [b]
+put 0 22
+put [34] 2
+put [42] 2 a
