@@ -1,2 +1,3 @@
-# TWIM
-Mega Virtual Machine of the death :3
+# Twio
+
+The World Is Ours

@@ -2,6 +2,8 @@ global import require \prelude-ls
 
 require! {
   fs
+  path
+  \tiny-parser : tiny
   \../common/Argument
   \../common/Instruction
 }
@@ -9,25 +11,23 @@ require! {
 class Compiler
 
   ->
-    fs.readFile it, (err, @file) ~>
-      throw new Error err if err?
+    tiny path.resolve(__dirname, \./asm.gra), it, (err, @ast) ~>
+      return console.error err if err?
 
-      @file .= toString!
+      @lines = ast.value |> map (.literal) >> (.replace '\n' '') >> (.split ' ')
+      console.log ast, @lines
 
-      @lines = @file.split \\n
-        |> compact
-        |> map ->
-          split ' ' it
+      /*binary = @parse!*/
+      fs.writeFile \./a.out @parse!, console.log
+      /*console.log ast
 
-      fs.writeFile \./a.out @parse!, (err, res) ->
-        throw new Error err if err?
+      parse = map (parse >> console.log)
 
-        console.log \Done.
+      parse ast.value*/
 
   parse: ->
     @lines = @lines |> map Instruction~compile
     Buffer.from flatten @lines
-
 
 if process.argv.length < 2
   return console.log "Usage: lsc compiler PATH"

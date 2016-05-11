@@ -16,23 +16,26 @@ class Twio
 
     @regs = Register
 
-    @run!
+    @loadKernel ~> @run!
 
-  run: ->
-    fs.readFile @binaryPath, (err, binary) ~>
+  loadKernel: (done) ->
+    fs.readFile @binaryPath, (err, @binary) ~>
       throw new Error err if err?
 
-      @ram.load binary
+      @ram.load @binary
+      done!
 
-      loop
-        @cycle!
+
+  run: ->
+    loop
+      @cycle!
 
   cycle: ->
-    @regs.ip.val += @interpret!
+    @regs.ip.val = @interpret!
     @checkFault!
 
   interpret: ->
-    Instruction.read @regs.ip.val .size
+    Instruction.read @regs.ip.val .size + @regs.ip.val
 
   checkFault: ->
     if !(0 <= @regs.ip.val < Ram.SIZE)

@@ -1,6 +1,0 @@
-put 31 a
-put 65 b
-put b [a]
-aff 65
-aff 66
-aff 67

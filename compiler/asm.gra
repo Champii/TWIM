@@ -1,0 +1,8 @@
+S: Expression+
+Expression: Opcode SpaceArg+ "\n"?
+Opcode: Letter+
+SpaceArg: " " Arg
+Arg: Literal | Reg | Deref
+Reg: "a" | "b" | "c" | "d" | "ip"
+Literal: Digit+
+Deref: "[" Arg "]"
