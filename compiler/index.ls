@@ -3,10 +3,13 @@ global import require \prelude-ls
 require! {
   fs
   path
+  util
   \tiny-parser : tiny
   \../common/Argument
   \../common/Instruction
 }
+
+inspect = -> console.log util.inspect it, {depth: null}
 
 class Compiler
 
@@ -16,9 +19,10 @@ class Compiler
     tiny path.resolve(__dirname, \./asm.gra), it, (err, @ast) ~>
       return console.error err if err?
 
+      inspect @ast
       @lines = []
 
-      map @~parse, ast.value
+      map @~parse, @ast.value
 
       @write!
 
@@ -35,14 +39,22 @@ class Compiler
     @currAddr += tmp.length
 
   parseliteral: ->
-    if \LabelUse not in map (.symbol), it.value
+    if (\LabelUse not in map (.symbol), it.value) and (\Char not in map (.symbol), it.value)
       @newExpr.push it.literal
+    @parse it
+
+  parseChar: ->
+    @newExpr.push '' + it.literal.charCodeAt 1
     @parse it
 
   parseStatement: @::parse
   parseSpaceArg: @::parse
-  parseArg: @::parseliteral
+  parseArg: @::parse
   parseOpcode: @::parseliteral
+  parseReg: @::parseliteral
+  parseLabelUse: @::parseliteral
+  parseDeref: @::parseliteral
+  parseLiteral: @::parseliteral
 
   parseLabelUse: (node) ->
     @newExpr.push ->
@@ -63,6 +75,7 @@ class Compiler
   write: ->
     @postParse!
 
+    console.log @lines
     @lines = Buffer.from flatten @lines
 
     fs.writeFile \./a.out @lines, console.log

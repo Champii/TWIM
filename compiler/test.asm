@@ -1,8 +1,7 @@
-jump :z
-put 31 a
-put 49 [a]
-aff 48
-aff [a]
-aff 50
 z:
-aff 55
+aff 'h'
+aff 'e'
+aff 'l'
+aff 'l'
+aff 'o'
+jump :z

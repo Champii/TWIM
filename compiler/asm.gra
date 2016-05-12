@@ -18,6 +18,8 @@ LabelUse: ":" Label
 
 Label: Letter+
 
-Literal: Digit+
+Literal: Char | Digit+
+
+Char: "'" Letter "'"
 
 Deref: "[" Arg "]"
