@@ -12,10 +12,14 @@ class Compiler
 
   ->
     @currAddr = 0
+
     tiny path.resolve(__dirname, \./asm.gra), it, (err, @ast) ~>
       return console.error err if err?
+
       @lines = []
+
       map @~parse, ast.value
+
       @write!
 
   parse: ->
@@ -23,8 +27,6 @@ class Compiler
       |> map ~>
         if it.symbol? and @[\parse + it.symbol]?
           @~[\parse + it.symbol] it
-          /*console.log @~[\parse + it.symbol]*/
-
 
   parseExpression: ->
     @newExpr = []
@@ -33,7 +35,8 @@ class Compiler
     @currAddr += tmp.length
 
   parseliteral: ->
-    @newExpr.push it.literal
+    if \LabelUse not in map (.symbol), it.value
+      @newExpr.push it.literal
     @parse it
 
   parseStatement: @::parse
@@ -41,15 +44,27 @@ class Compiler
   parseArg: @::parseliteral
   parseOpcode: @::parseliteral
 
+  parseLabelUse: (node) ->
+    @newExpr.push ->
+      arg = Argument.create node.literal
+      arg.compile!
+    @parse node
+
   parseLabelDecl: ->
     Argument.labels[it.literal[til -2]*''] = @currAddr
     @parse it
 
-  write: ->
-    @lines = Buffer.from flatten @lines
-    /*|> map Instruction~compile*/
+  postParse: ->
+    @lines = @lines |> map ->
+      it |> map ->
+        | is-type \Function it => it!
+        | _                    => it
 
-    /*console.log 'LINES' @lines*/
+  write: ->
+    @postParse!
+
+    @lines = Buffer.from flatten @lines
+
     fs.writeFile \./a.out @lines, console.log
 
 if process.argv.length < 2

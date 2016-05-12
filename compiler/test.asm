@@ -1,6 +1,8 @@
+jump :z
 put 31 a
 put 49 [a]
 aff 48
-toto:
 aff [a]
-jump :toto
+aff 50
+z:
+aff 55
