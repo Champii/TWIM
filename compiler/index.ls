@@ -11,23 +11,46 @@ require! {
 class Compiler
 
   ->
+    @currAddr = 0
     tiny path.resolve(__dirname, \./asm.gra), it, (err, @ast) ~>
       return console.error err if err?
-
-      @lines = ast.value |> map (.literal) >> (.replace '\n' '') >> (.split ' ')
-      console.log ast, @lines
-
-      /*binary = @parse!*/
-      fs.writeFile \./a.out @parse!, console.log
-      /*console.log ast
-
-      parse = map (parse >> console.log)
-
-      parse ast.value*/
+      @lines = []
+      map @~parse, ast.value
+      @write!
 
   parse: ->
-    @lines = @lines |> map Instruction~compile
-    Buffer.from flatten @lines
+    it.value
+      |> map ~>
+        if it.symbol? and @[\parse + it.symbol]?
+          @~[\parse + it.symbol] it
+          /*console.log @~[\parse + it.symbol]*/
+
+
+  parseExpression: ->
+    @newExpr = []
+    @parse it
+    @lines.push tmp = Instruction.compile @newExpr
+    @currAddr += tmp.length
+
+  parseliteral: ->
+    @newExpr.push it.literal
+    @parse it
+
+  parseStatement: @::parse
+  parseSpaceArg: @::parse
+  parseArg: @::parseliteral
+  parseOpcode: @::parseliteral
+
+  parseLabelDecl: ->
+    Argument.labels[it.literal[til -2]*''] = @currAddr
+    @parse it
+
+  write: ->
+    @lines = Buffer.from flatten @lines
+    /*|> map Instruction~compile*/
+
+    /*console.log 'LINES' @lines*/
+    fs.writeFile \./a.out @lines, console.log
 
 if process.argv.length < 2
   return console.log "Usage: lsc compiler PATH"

@@ -2,11 +2,11 @@ require! {
   \../vm/Ram
 }
 
-
 class Argument
 
   @classes = {}
   @classesArr = []
+  @labels = {}
 
   (@val) ->
 
@@ -16,6 +16,7 @@ class Argument
   @create = ->
     | it[0, *-1] === <[ [ ] ]>     => Argument.Pointer._create it
     | it in keys TrueRegister.regs => new Argument.Register it
+    | it.0 is \:                   => new Argument.Label Argument.labels[it[1 to]*'']
     | is-type \Number +it          => new Argument.Literal it
     | _                            => throw new Error "Cannot create argument: #{it}"
 
@@ -30,6 +31,8 @@ class Argument.Literal extends Argument
 
   compile: -> +@val
   get:     -> @val
+
+class Argument.Label extends Argument.Literal
 
 class Argument.Pointer extends Argument
 
@@ -47,6 +50,7 @@ class Argument.LiteralPointer extends Argument.Pointer
   get:     -> Ram.get8 @val
   set:     -> Ram.set8 @val, it
 
+
 class Argument.RegisterPointer extends Argument.Pointer
 
   @register 2
@@ -62,6 +66,7 @@ class Argument.Register extends Argument
   compile: -> TrueRegister[@val].typeFlag
   get:     -> TrueRegister.regsArr[@val].val
   set:     -> TrueRegister.regsArr[@val].val = it
+
 
 module.exports = Argument
 

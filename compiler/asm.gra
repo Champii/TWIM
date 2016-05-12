@@ -1,8 +1,23 @@
-S: Expression+
+S: Statement+
+
+Statement: LabelDecl | Expression
+
 Expression: Opcode SpaceArg+ "\n"?
+
 Opcode: Letter+
+
 SpaceArg: " " Arg
-Arg: Literal | Reg | Deref
+
+Arg: Literal | LabelUse | Reg | Deref
+
 Reg: "a" | "b" | "c" | "d" | "ip"
+
+LabelDecl: Label ":\n"
+
+LabelUse: ":" Label
+
+Label: Letter+
+
 Literal: Digit+
+
 Deref: "[" Arg "]"
