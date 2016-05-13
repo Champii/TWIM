@@ -1,6 +1,6 @@
 class Ram
 
-  SIZE: 32
+  SIZE: 64
 
   data: []
 

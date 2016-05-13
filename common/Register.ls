@@ -24,24 +24,22 @@ class Register
     @
 
 class Register.A extends Register
-
   @register 1
 
 class Register.B extends Register
-
   @register 2
 
 class Register.C extends Register
-
   @register 3
 
 class Register.D extends Register
-
   @register 4
 
 class Register.IP extends Register
-
   @register 5
+
+class Register.CR extends Register
+  @register 6
 
 
 module.exports = Register.instantiate!

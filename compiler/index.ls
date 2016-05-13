@@ -19,7 +19,7 @@ class Compiler
     tiny path.resolve(__dirname, \./asm.gra), it, (err, @ast) ~>
       return console.error err if err?
 
-      inspect @ast
+      /*inspect @ast*/
       @lines = []
 
       map @~parse, @ast.value
@@ -38,7 +38,7 @@ class Compiler
     @lines.push tmp = Instruction.compile @newExpr
     @currAddr += tmp.length
 
-  parseliteral: ->
+  getliteral: ->
     if (\LabelUse not in map (.symbol), it.value) and (\Char not in map (.symbol), it.value)
       @newExpr.push it.literal
     @parse it
@@ -50,11 +50,12 @@ class Compiler
   parseStatement: @::parse
   parseSpaceArg: @::parse
   parseArg: @::parse
-  parseOpcode: @::parseliteral
-  parseReg: @::parseliteral
-  parseLabelUse: @::parseliteral
-  parseDeref: @::parseliteral
-  parseLiteral: @::parseliteral
+  parseOpcode: @::getliteral
+  parseReg: @::getliteral
+  parseLabelUse: @::getliteral
+  parseDeref: @::getliteral
+
+  parseLiteral: @::getliteral
 
   parseLabelUse: (node) ->
     @newExpr.push ->
@@ -75,10 +76,12 @@ class Compiler
   write: ->
     @postParse!
 
-    console.log @lines
     @lines = Buffer.from flatten @lines
 
-    fs.writeFile \./a.out @lines, console.log
+    fs.writeFile \./a.out @lines, (err, res) ->
+      return console.error err if err?
+
+      console.log 'Ok'
 
 if process.argv.length < 2
   return console.log "Usage: lsc compiler PATH"

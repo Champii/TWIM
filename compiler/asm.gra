@@ -1,6 +1,6 @@
 S: Statement+
 
-Statement: LabelDecl | Expression
+Statement: LabelDecl | Expression | "\n"
 
 Expression: Opcode SpaceArg+ "\n"?
 
@@ -10,7 +10,7 @@ SpaceArg: " " Arg
 
 Arg: Literal | LabelUse | Reg | Deref
 
-Reg: "a" | "b" | "c" | "d" | "ip"
+Reg: "a" | "b" | "c" | "d" | "ip" | "cr"
 
 LabelDecl: Label ":\n"
 

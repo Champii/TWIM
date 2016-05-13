@@ -71,7 +71,7 @@ class Instruction
   @_compile = (args) ->
     res = [@op]
     res.push @makeFlags args
-    res = res.concat map (.compile?! or it), args
+    res = res.concat map (-> if it.compile?!? => that else it), args
     res
 
 # Load every instructions
