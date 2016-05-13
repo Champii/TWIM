@@ -6,7 +6,7 @@
   "dependencies": {
     "livescript": "^1.4.0",
     "prelude-ls": "^1.1.2",
-    "tiny-parser": "0.0.2"
+    "tiny-parser": "0.0.3"
   },
   "devDependencies": {},
   "scripts": {
