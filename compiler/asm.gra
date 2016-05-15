@@ -1,16 +1,26 @@
 S: Statement+
 
-Statement: LabelDecl | Expression | "\n"
+Statement: " "* LabelDecl | VarDecl | Expression | Comment | "\n" "\n"?
 
-Expression: Opcode SpaceArg+ "\n"?
+Comment: "#" Sentence*
+
+Sentence: Alphanum+ | " " | "'" | ":" | "[" | "]"
+
+VarDecl: "db " VarName " " Literal
+
+VarName: Letter+
+
+Expression: Opcode SpaceArg+
 
 Opcode: Letter+
 
-SpaceArg: " " Arg
+SpaceArg: " "+ Operation | Arg
 
-Arg: Literal | LabelUse | Reg | Deref
+Arg: Literal | LabelUse | Reg | Var | Deref
 
-Reg: "a" | "b" | "c" | "d" | "ip" | "cr"
+Var: Letter+
+
+Reg: "a" | "b" | "c" | "d" | "ip" | "cr" | "sp"
 
 LabelDecl: Label ":\n"
 
@@ -18,8 +28,10 @@ LabelUse: ":" Label
 
 Label: Letter+
 
-Literal: Char | Digit+
+Literal: Char | Digit+ | String
 
-Char: "'" Letter "'"
+String: "'" Alphanum+ "'"
+
+Char: "'" Letter | Digit "'"
 
 Deref: "[" Arg "]"

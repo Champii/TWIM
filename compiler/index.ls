@@ -11,9 +11,11 @@ require! {
 
 inspect = -> console.log util.inspect it, {depth: null}
 
+
 class Compiler
 
   ->
+    @variables = {}
     @currAddr = 0
 
     tiny path.resolve(__dirname, \./asm.gra), it, (err, @ast) ~>
@@ -22,15 +24,24 @@ class Compiler
       /*inspect @ast*/
       @lines = []
 
-      map @~parse, @ast.value
+      map @~parse, @ast.children
 
       @write!
 
   parse: ->
-    it.value
+    it.children
       |> map ~>
         if it.symbol? and @[\parse + it.symbol]?
           @~[\parse + it.symbol] it
+
+  parseVarDecl: ->
+    @variables[it.children[1].literal] = @currAddr
+    if it.children[3].children[0].symbol is \Digit
+      @lines.push [it.children[3].literal]
+      @currAddr += 1
+    if it.children[3].children[0].symbol is \String
+      @lines.push (map (.charCodeAt(0)), it.children[3].literal[1 til -1]) ++ [0]
+      @currAddr += it.children[3].literal.length - 1
 
   parseExpression: ->
     @newExpr = []
@@ -38,10 +49,20 @@ class Compiler
     @lines.push tmp = Instruction.compile @newExpr
     @currAddr += tmp.length
 
+  parseVar: (node, deref = false) ->
+    throw new Error "Unknown variable name: #{node.literal}" if not @variables[node.literal]?
+    arg = @variables[node.literal]
+    if deref
+      arg = '[' + arg + ']'
+
+    @newExpr.push arg
+    @parse node
+
   getliteral: ->
-    if (\LabelUse not in map (.symbol), it.value) and (\Char not in map (.symbol), it.value)
+    if not it.contains \LabelUse and not it.contains \Char
       @newExpr.push it.literal
-    @parse it
+    else
+      @parse it
 
   parseChar: ->
     @newExpr.push '' + it.literal.charCodeAt 1
@@ -53,7 +74,12 @@ class Compiler
   parseOpcode: @::getliteral
   parseReg: @::getliteral
   parseLabelUse: @::getliteral
-  parseDeref: @::getliteral
+
+  parseDeref: ->
+    if it.contains \Var
+      @parseVar it.children[1].children.0, true
+    else
+      @getliteral it
 
   parseLiteral: @::getliteral
 

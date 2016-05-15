@@ -41,5 +41,8 @@ class Register.IP extends Register
 class Register.CR extends Register
   @register 6
 
+class Register.SP extends Register
+  @register 7
+
 
 module.exports = Register.instantiate!

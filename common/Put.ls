@@ -1,6 +1,7 @@
 require! {
   \./Instruction
   \./Register
+  \../vm/Ram
 }
 
 class Nop extends Instruction
@@ -43,6 +44,25 @@ class Jneq extends Jump
   process: ->
     if Register.cr.val
       super!
+
+class Add extends Instruction
+
+  @register 7
+  process: -> @args.0.set @args.0.get! + @args.1.get!
+
+class Push extends Instruction
+
+  @register 8
+  process: ->
+    Register.sp.val += 1
+    Ram.set8 Register.sp.val, @args.0.get!
+
+class Pop extends Instruction
+
+  @register 9
+  process: ->
+    @args.0.set Ram.get8 Register.sp.val
+    Register.sp.val -= 1
 
 
 module.exports = Put

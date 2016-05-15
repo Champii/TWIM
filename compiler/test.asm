@@ -1,22 +1,50 @@
-put 0 a
-put 1 b
+jump :start
 
-cmp a b
+db lol 1
+db ok 'ok'
+db nok 'notok'
 
-jeq :ok
-jneq :nok
+test:
+  aff 't'
+  jump :end
 
-jump :end
+testt:
+  aff 'd'
+  jump :end
+
+start:
+  put :stack sp
+
+  cmp [lol] 2
+
+  jeq :ok
+  jneq :nok
+
+  jump :end
 
 ok:
-aff 'o'
-aff 'k'
-jump :end
+  put ok a
+  push :test
+  jump :putstr
 
 nok:
-aff 'n'
-aff 'o'
-aff 'k'
+  put nok a
+  push :testt
+  jump :putstr
 
 end:
-jump :end
+  jump :end
+
+# a: null terminated string
+putstr:
+  aff [a]
+  add a 1
+  cmp [a] 0
+  jneq :putstr
+  pop d
+  jump d
+
+aff 'p'
+
+stack:
+#
