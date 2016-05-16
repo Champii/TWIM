@@ -1,50 +1,56 @@
-jump :start
+init:
+  put :stack sp
+  put :stack bp
+  jump :start
 
-db lol 1
-db ok 'ok'
-db nok 'notok'
+  db lol 1
+  db ok 'Lol is equal\n'
+  db nok 'Lol isnt equal\n'
+  db next 'To do next...\n'
+  db end 'This is the end\n'
 
-test:
-  aff 't'
-  jump :end
+strlen:
 
-testt:
-  aff 'd'
-  jump :end
+putstr:
+  #get argument
+  put bp c
+  sub 2 c
+  put [c] c
+
+  loop:
+    aff [c]
+    inc c
+    cmp [c] 0
+    jneq :loop
+
+  ret
 
 start:
-  put :stack sp
-
-  cmp [lol] 2
+  cmp [lol] 1
 
   jeq :ok
   jneq :nok
 
-  jump :end
+  ok:
+    push ok
+    call :putstr
+    jump :next
 
-ok:
-  put ok a
-  push :test
-  jump :putstr
-
-nok:
-  put nok a
-  push :testt
-  jump :putstr
+  nok:
+    push nok
+    call :putstr
+    jump :end
 
 end:
+  push end
+  call :putstr
+  endd:
+    jump :endd
+
+next:
+  push next
+  call :putstr
   jump :end
-
-# a: null terminated string
-putstr:
-  aff [a]
-  add a 1
-  cmp [a] 0
-  jneq :putstr
-  pop d
-  jump d
-
-aff 'p'
 
 stack:
 #

@@ -5,6 +5,7 @@ require! {
   \./Fault
 }
 
+opCount = 0
 class Instruction
 
   @ops = {}
@@ -57,10 +58,11 @@ class Instruction
       console.log \Flag: (it .&. (3 .<<. (2 * i))) .>>. (2 * i)
 
   @register = ->
-    @op = it
-    @::op = it
+    @op = opCount
+    @::op = opCount
     @_compile = Instruction._compile
-    @opsArr[it] = @ops[@displayName.toLowerCase!] = @
+    @opsArr[opCount] = @ops[@displayName.toLowerCase!] = @
+    opCount++
 
   @compile = ([op, ...args]) ->
     if not @ops[op]?

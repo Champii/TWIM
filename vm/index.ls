@@ -25,7 +25,6 @@ class Twio
       @ram.load @binary
       done!
 
-
   run: ->
     loop
       @cycle!
@@ -40,16 +39,6 @@ class Twio
   checkFault: ->
     if !(0 <= @regs.ip.val < Ram.SIZE)
       new Fault "ip out of range"
-
-  /*load: ->
-    [reg, addr] = @ram[@regs.ip.val + 1, @regs.ip.val + 2]
-    @ram[addr] = @regs[@regsIdx[reg]]
-    2
-
-  unload: ->
-    [addr, reg] = @ram[@regs.ip.val + 1, @regs.ip.val + 2]
-    @regs[@regsIdx[reg]] = @ram[addr]
-    2*/
 
 if process.argv.length != 3
   return console.log "Usage: lsc . BINARY"

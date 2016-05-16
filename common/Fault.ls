@@ -7,9 +7,29 @@ require! {
 class Fault
 
   (message) ->
-    console.error "\nFAULT ! \n\n"
-    console.error "#{message}\n\nip: #{Register.ip.val}\na: #{Register.a.val}\nb: #{Register.b.val}\nc: #{Register.c.val}\nd: #{Register.d.val}"
-    console.error hexdump new Buffer(Ram.data, \hex)
+    console.error """
+
+    -------- FAULT --------
+
+    #{message}
+
+    Regs:
+
+      a: #{Register.a.val}
+      b: #{Register.b.val}
+      c: #{Register.c.val}
+      d: #{Register.d.val}
+
+      ip: #{Register.ip.val}
+      sp: #{Register.sp.val}
+      bp: #{Register.bp.val}
+      cr: #{Register.cr.val}
+
+    Memory:
+
+    #{hexdump new Buffer(Ram.data, \hex)}
+"""
+    console.error
     process.exit!
 
 module.exports = Fault

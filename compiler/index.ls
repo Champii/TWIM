@@ -40,6 +40,7 @@ class Compiler
       @lines.push [it.children[3].literal]
       @currAddr += 1
     if it.children[3].children[0].symbol is \String
+      it.children[3].literal .= replace '\\n' '\n'
       @lines.push (map (.charCodeAt(0)), it.children[3].literal[1 til -1]) ++ [0]
       @currAddr += it.children[3].literal.length - 1
 
@@ -65,6 +66,7 @@ class Compiler
       @parse it
 
   parseChar: ->
+    it.literal .= replace '\\n' '\n'
     @newExpr.push '' + it.literal.charCodeAt 1
     @parse it
 

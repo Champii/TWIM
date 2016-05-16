@@ -1,3 +1,9 @@
+require! {
+  \../vm/Ram
+}
+
+regCount = 0
+
 class Register
 
   @regs = {}
@@ -9,9 +15,10 @@ class Register
   compile: ->
 
   @register = ->
-    @typeFlag = it
-    @::typeFlag = it
+    @typeFlag = regCount
+    @::typeFlag = regCount
     @regs[@displayName.toLowerCase!] = @
+    regCount++
 
   @instantiate = ->
     @regs = @regs
@@ -20,29 +27,45 @@ class Register
       |> pairs-to-obj
 
     @ <<< @regs
-    @regsArr = [null].concat values @regs
+    @regsArr = values @regs
     @
 
+  @saveOnStack = ->
+    @regsArr
+      |> filter (.name in <[ A B C D ]>)
+      |> map ~> Stack.push it.val
+
+  @restoreFromStack = ->
+    @regsArr
+      |> reverse
+      |> filter (.name in <[ A B C D ]>)
+      |> map ~> it.val = Stack.pop!
+
 class Register.A extends Register
-  @register 1
+  @register!
 
 class Register.B extends Register
-  @register 2
+  @register!
 
 class Register.C extends Register
-  @register 3
+  @register!
 
 class Register.D extends Register
-  @register 4
+  @register!
 
 class Register.IP extends Register
-  @register 5
+  @register!
 
 class Register.CR extends Register
-  @register 6
+  @register!
 
 class Register.SP extends Register
-  @register 7
+  @register!
+
+class Register.BP extends Register
+  @register!
 
 
 module.exports = Register.instantiate!
+
+require! \../vm/Stack
