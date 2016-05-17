@@ -6,7 +6,6 @@ class Argument
 
   @classes = {}
   @classesArr = []
-  @labels = {}
 
   (@val) ->
 
@@ -17,9 +16,6 @@ class Argument
     | it[0, *-1] === <[ [ ] ]>     => Argument.Pointer._create it
     | it in keys TrueRegister.regs => new Argument.Register it
     | is-type \Function it         => it
-    | it.0 is \:                   =>
-      throw new Error "Unknown label: #{it[1 to]*''}" if not Argument.labels[it[1 to]*'']?
-      new Argument.Label Argument.labels[it[1 to]*'']
     | is-type \Number +it          => new Argument.Literal it
     | _                            => throw new Error "Cannot create argument: #{it}"
 
@@ -34,8 +30,6 @@ class Argument.Literal extends Argument
 
   compile: -> +@val
   get:     -> @val
-
-class Argument.Label extends Argument.Literal
 
 class Argument.Pointer extends Argument
 

@@ -84,13 +84,11 @@ class Call extends Instruction
     Stack.push Register.bp.val
     Register.bp.val = Register.sp.val
     Register.ip.val = @args.0.get! - @size
-    Register.saveOnStack!
 
 class Ret extends Instruction
 
   @register!
   process: ->
-    Register.restoreFromStack!
     Register.bp.val = Stack.pop!
     Register.ip.val = Stack.pop!
 

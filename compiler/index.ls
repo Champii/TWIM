@@ -2,6 +2,7 @@ global import require \prelude-ls
 
 require! {
   fs
+  async
   path
   util
   \tiny-parser : tiny
@@ -14,17 +15,24 @@ inspect = -> console.log util.inspect it, {depth: null}
 
 class Compiler
 
-  ->
+  (args) ->
     @variables = {}
-    @currAddr = 0
+    @globals = {}
+    @labels = {}
 
-    tiny path.resolve(__dirname, \./asm.gra), it, (err, @ast) ~>
+    @currAddr = 3
+
+    @lines = []
+    async.eachSeries args, (file, done) ~>
+      tiny path.resolve(__dirname, \./asm.gra), file, (err, ast) ~>
+        return console.error err if err?
+
+        @currentFile = file
+        @labels[file] = {}
+        map @~parse, ast.children
+        done!
+    , (err) ~>
       return console.error err if err?
-
-      /*inspect @ast*/
-      @lines = []
-
-      map @~parse, @ast.children
 
       @write!
 
@@ -86,13 +94,27 @@ class Compiler
   parseLiteral: @::getliteral
 
   parseLabelUse: (node) ->
-    @newExpr.push ->
-      arg = Argument.create node.literal
+    curFile = @currentFile
+    @newExpr.push ~>
+      name = node.literal[1 to]*''
+      label = @labels[curFile][name] || @globals[name]
+      throw new Error "Unknown label: #{name}" if not label?
+
+      arg = Argument.create label
       arg.compile!
+
     @parse node
 
   parseLabelDecl: ->
-    Argument.labels[it.literal[til -2]*''] = @currAddr
+    if it.children.0.literal is 'global '
+      if @globals[it.children.1.literal]?
+        throw new Error "Redefinition of global label: #{it.children.1.literal}"
+      @globals[it.children.1.literal] = @currAddr
+    else
+      if @labels[@currentFile][it.children.0.literal]?
+        throw new Error "Redefinition of local label: #{it.children.0.literal}"
+      @labels[@currentFile][it.children.0.literal] = @currAddr
+
     @parse it
 
   postParse: ->
@@ -102,16 +124,27 @@ class Compiler
         | _                    => it
 
   write: ->
-    @postParse!
+    if @globals.start?
+      startJump =
+        \jump
+        @globals.start
 
+      @lines.unshift Instruction.compile startJump
+    else
+      throw new Error "Need a global 'start' label. Exiting"
+
+    @postParse!
+    console.log @lines
+
+    /*console.log @globals, @labels, @lines*/
     @lines = Buffer.from flatten @lines
 
     fs.writeFile \./a.out @lines, (err, res) ->
       return console.error err if err?
 
-      console.log 'Ok'
+      console.log 'Done'
 
 if process.argv.length < 2
-  return console.log "Usage: lsc compiler PATH"
+  return console.log "Usage: lsc compiler PATH [PATH [...]]"
 
-new Compiler process.argv[2]
+new Compiler process.argv[2 to]

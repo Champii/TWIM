@@ -20,11 +20,11 @@ Var: Letter+
 
 Reg: "bp" | "ip" | "cr" | "sp" | "a" | "b" | "c" | "d"
 
-LabelDecl: Label ":\n"
+LabelDecl: "global "? Label ":\n"
 
 LabelUse: ":" Label
 
-Label: Letter+
+Label: Letter Alphanum*
 
 Literal: Char | Digit+ | String
 
