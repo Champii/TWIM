@@ -2,9 +2,7 @@ global strlen:
   push c
 
   #get argument
-  put bp c
-  sub 2 c
-  put [c] c
+  put [bp-2] c
 
   put 0 a
 
@@ -21,9 +19,7 @@ global putstr:
   push c
 
   #get argument
-  put bp c
-  sub 2 c
-  put [c] c
+  put [bp-2] c
 
   loop:
     aff [c]

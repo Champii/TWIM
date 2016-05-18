@@ -74,7 +74,9 @@ class Push extends Instruction
 class Pop extends Instruction
 
   @register!
-  process: -> @args.0.set Stack.pop!
+  process: ->
+    val = Stack.pop!
+    @args.0.set val if @args.0?
 
 class Call extends Instruction
 

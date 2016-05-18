@@ -6,8 +6,8 @@ require! {
   path
   util
   \tiny-parser : tiny
-  \../common/Argument
-  \../common/Instruction
+  \../../common/Argument
+  \../../common/Instruction
 }
 
 inspect = -> console.log util.inspect it, {depth: null}
@@ -27,6 +27,7 @@ class Compiler
       tiny path.resolve(__dirname, \./asm.gra), file, (err, ast) ~>
         return console.error err if err?
 
+        inspect ast
         @currentFile = file
         @labels[file] = {}
         map @~parse, ast.children
@@ -86,6 +87,8 @@ class Compiler
   parseLabelUse: @::getliteral
 
   parseDeref: ->
+    if it.contains \Displacement
+      
     if it.contains \Var
       @parseVar it.children[1].children.0, true
     else
@@ -134,9 +137,7 @@ class Compiler
       throw new Error "Need a global 'start' label. Exiting"
 
     @postParse!
-    console.log @lines
 
-    /*console.log @globals, @labels, @lines*/
     @lines = Buffer.from flatten @lines
 
     fs.writeFile \./a.out @lines, (err, res) ->

@@ -45,8 +45,8 @@ class Instruction
     new res it
 
   @makeFlags = (args) ->
-    if args.length > 3
-      throw new Error "Instruction.makeFlags: Too much arguments. Max = 3, Given: #{args.length}"
+    if args.length > 2
+      throw new Error "Instruction.makeFlags: Too much arguments. Max = 2, Given: #{args.length}"
 
     res = args.length
     for arg, i in args

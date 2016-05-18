@@ -1,0 +1,50 @@
+# exprected compiled asm
+
+db lol 'lol'
+
+aff:
+  push c
+  put bp c
+  sub 2 c
+  put [c] c
+
+  outb 0 c
+  pop c
+
+  ret
+
+putstr:
+  push b
+  push c
+  push d
+
+  #str
+  put bp c
+  sub 2 c
+  put [c] c
+
+  #a
+  push 0
+  put [bp] d
+
+  #tmp
+  put c b
+
+  loop:
+    cmp [c+d] 0
+    inc d
+    push [c+d]
+    call :aff
+    pop
+    jneq :loop
+
+  pop
+  pop d
+  pop c
+  pop b
+  ret
+
+
+push lol
+call :putstr
+pop
