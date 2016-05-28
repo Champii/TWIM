@@ -5,6 +5,12 @@ require! {
   \./Fault
 }
 
+class BadArgumentFault extends Fault
+
+  (op) ->
+    super "Bad argument length for #{op}"
+
+
 opCount = 0
 class Instruction
 
@@ -30,11 +36,32 @@ class Instruction
     @size = @nbArgs + 2
 
     @decodeArgs types
+    @_process!
     @process!
 
   decodeArgs: ->
+    size = 2
+
     for type, i in it
-      @args.push Argument.read(type, Ram.get8 @addr + i + 2)
+      if type is Argument.Pointer.typeFlag
+        arg = Argument.Pointer.decode @addr + size
+        @args.push arg
+
+        @size += arg.val.length
+        size += arg.val.length + 1
+
+      else
+        @args.push Argument.read(type, Ram.get8 @addr + size)
+        size++
+
+
+  _process: ->
+    if is-type \Array @_nbArgs
+      if @args.length not in @_nbArgs
+        throw new BadArgumentFault "#{@name}: #{@args.length}"
+    else
+      if @args.length isnt @_nbArgs
+        throw new BadArgumentFault "#{@name}: #{@args.length}"
 
   process: -> ...
 
@@ -45,36 +72,39 @@ class Instruction
     new res it
 
   @makeFlags = (args) ->
-    if args.length > 2
-      throw new Error "Instruction.makeFlags: Too much arguments. Max = 2, Given: #{args.length}"
+    if args.length > 3
+      throw new Error "Instruction.makeFlags: Too much arguments. Max = 3, Given: #{args.length}"
 
     res = args.length
     for arg, i in args
       res += arg.typeFlag .<<. (2 * (i + 1))
+      /*if arg.typeFlag is*/
     res
 
   @showFlags = ->
     for i from 0 til 4
       console.log \Flag: (it .&. (3 .<<. (2 * i))) .>>. (2 * i)
 
-  @register = ->
+  @register = (nbArgs) ->
+    @::_nbArgs = nbArgs
+
     @op = opCount
     @::op = opCount
+
+    @::name = @displayName.toLowerCase!
     @_compile = Instruction._compile
     @opsArr[opCount] = @ops[@displayName.toLowerCase!] = @
+
     opCount++
 
   @compile = ([op, ...args]) ->
     if not @ops[op]?
       new Fault "Unknown opcode: #{op}"
 
-    @ops[op]._compile map Argument.create, args
+    @ops[op]._compile args
 
   @_compile = (args) ->
-    res = [@op]
-    res.push @makeFlags args
-    res = res.concat map (-> if it.compile?!? => that else it), args
-    res
+    flatten ([@op, @makeFlags args] ++ map (-> if it.compile?!? => that else it), args)
 
 # Load every instructions
 fs.readdir __dirname, (err, list) ->

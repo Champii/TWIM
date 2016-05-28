@@ -25,7 +25,7 @@ class Fault
       bp: #{Register.bp.val}
       cr: #{Register.cr.val}
 
-    Memory:
+    Memory (#{Ram.data.length}B):
 
     #{hexdump new Buffer(Ram.data, \hex)}
 """

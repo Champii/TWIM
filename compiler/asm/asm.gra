@@ -1,29 +1,30 @@
 S: Statement+
 
-Statement: " "* LabelDecl | VarDecl | Expression | Comment | "\n" "\n"?
+Statement: %" "* LabelDecl | VarDecl | Expression | %Comment | %"\n" %"\n"?
 
 # Statements
 Comment: "#" Character*
-VarDecl: "db " VarName " " Literal
-Expression: Opcode SpaceArg*
-LabelDecl: "global "? Label ":\n"
-
+VarDecl: %"db " VarName %" " Literal
+Expression: Opcode Args
+Args: !SpaceArg*
+LabelDecl: Global? Label %":\n"
+Global: %"global "
 # Args
-SpaceArg: " "+ Arg
+SpaceArg: %" "+ !Arg
 Arg: Literal | LabelUse | Reg | Var | Deref
-Literal: Char | Digit+ | String
-LabelUse: ":" Label
+Literal: Char | Number | String
+LabelUse: %":" Label
 Reg: "bp" | "ip" | "cr" | "sp" | "a" | "b" | "c" | "d"
-Var: Letter+
-Deref: "[" Displacement | Arg "]"
+Var: %Letter+
+Deref: %"[" Displacement | !Arg %"]"
 
 # Displacements
-Displacement: Arg Operator Arg
+Displacement: !Arg Operator !Displacement | !Arg
 Operator: "+" | "-"
 
 # Literals
-String: "'" Character+ "'"
-Char: "'" Letter | Digit "'"
-VarName: Letter+
-Opcode: Letter+
-Label: Letter Alphanum*
+String: %"'" %Character+ %"'"
+Char: %"'" Letter | Digit %"'"
+VarName: %Letter+
+Opcode: %Letter+
+Label: %Letter %Alphanum*

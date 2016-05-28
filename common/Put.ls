@@ -3,84 +3,86 @@ require! {
   \./Register
   \../vm/Ram
   \../vm/Stack
+  \./Fault
 }
+
 
 class Nop extends Instruction
 
-  @register!
+  @register 0
   ->
   process: ->
 
 # put src dest
 class Put extends Instruction
 
-  @register!
+  @register 2
   process: -> @args.1.set @args.0.get!
 
 class Aff extends Instruction
 
-  @register!
+  @register 1
   process: -> process.stdout.write String.fromCharCode @args.0.get!
 
 class Jump extends Instruction
 
-  @register!
+  @register 1
   process: -> Register.ip.val = @args.0.get! - @size
 
 class Cmp extends Instruction
 
-  @register!
+  @register 2
   process: -> Register.cr.val = abs @args.0.get! - @args.1.get!
 
 class Jeq extends Jump
 
-  @register!
+  @register 1
   process: ->
     if not Register.cr.val
       super!
 
 class Jneq extends Jump
 
-  @register!
+  @register 1
   process: ->
     if Register.cr.val
       super!
 
 class Add extends Instruction
 
-  @register!
+  @register 2
   process: -> @args.1.set @args.0.get! + @args.1.get!
 
 class Sub extends Instruction
 
-  @register!
+  @register 2
   process: -> @args.1.set @args.1.get! - @args.0.get!
 
 class Inc extends Instruction
 
-  @register!
+  @register 1
   process: -> @args.0.set @args.0.get! + 1
 
 class Dec extends Instruction
 
-  @register!
+  @register 1
   process: -> @args.0.set @args.0.get! - 1
 
 class Push extends Instruction
 
-  @register!
+  @register 1
   process: -> Stack.push @args.0.get!
 
 class Pop extends Instruction
 
-  @register!
+  @register [0, 1]
   process: ->
     val = Stack.pop!
     @args.0.set val if @args.0?
 
 class Call extends Instruction
 
-  @register!
+  @register 1
   process: ->
     Stack.push Register.ip.val + 1
     Stack.push Register.bp.val
@@ -89,9 +91,15 @@ class Call extends Instruction
 
 class Ret extends Instruction
 
-  @register!
+  @register 0
   process: ->
     Register.bp.val = Stack.pop!
     Register.ip.val = Stack.pop!
+
+class Fail extends Instruction
+
+  @register 0
+  process: ->
+    throw new Fault "Fail instruction occured"
 
 module.exports = Put

@@ -1,13 +1,13 @@
 {
   "name": "twio",
   "version": "0.0.1",
-  "description": "Mega Virtual Machine of the death :3",
+  "description": "Combo VM + langage + kernel",
   "main": "index.js",
   "dependencies": {
     "hexdump-nodejs": "^0.1.0",
     "livescript": "^1.4.0",
     "prelude-ls": "^1.1.2",
-    "tiny-parser": "0.0.3"
+    "tiny-parser": "0.0.5"
   },
   "devDependencies": {},
   "scripts": {

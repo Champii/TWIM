@@ -12,7 +12,6 @@ require! {
 
 inspect = -> console.log util.inspect it, {depth: null}
 
-
 class Compiler
 
   (args) ->

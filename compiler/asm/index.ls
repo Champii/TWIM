@@ -25,12 +25,16 @@ class Compiler
     @lines = []
     async.eachSeries args, (file, done) ~>
       tiny path.resolve(__dirname, \./asm.gra), file, (err, ast) ~>
-        return console.error err if err?
+        return done err if err?
 
-        inspect ast
+        # inspect ast
+        # ast.print!
+
         @currentFile = file
         @labels[file] = {}
+
         map @~parse, ast.children
+
         done!
     , (err) ~>
       return console.error err if err?
@@ -43,15 +47,21 @@ class Compiler
         if it.symbol? and @[\parse + it.symbol]?
           @~[\parse + it.symbol] it
 
+        else
+          @parse it
+
   parseVarDecl: ->
-    @variables[it.children[1].literal] = @currAddr
-    if it.children[3].children[0].symbol is \Digit
-      @lines.push [it.children[3].literal]
+    @variables[it.children[0].literal] = @currAddr
+
+    if it.contains \Number
+      @lines.push [it.children[1].literal]
       @currAddr += 1
-    if it.children[3].children[0].symbol is \String
-      it.children[3].literal .= replace '\\n' '\n'
-      @lines.push (map (.charCodeAt(0)), it.children[3].literal[1 til -1]) ++ [0]
-      @currAddr += it.children[3].literal.length - 1
+
+    if it.contains \String
+      it.children[1].literal .= replace '\\n' '\n'
+      @lines.push (map (.charCodeAt(0)), it.children[1].literal[1 til -1]) ++ [0]
+
+      @currAddr += it.children[1].literal.length - 1
 
   parseExpression: ->
     @newExpr = []
@@ -62,15 +72,24 @@ class Compiler
   parseVar: (node, deref = false) ->
     throw new Error "Unknown variable name: #{node.literal}" if not @variables[node.literal]?
     arg = @variables[node.literal]
-    if deref
-      arg = '[' + arg + ']'
+    arg = new Argument.Literal arg
+    # if deref
+    #   arg = new Argument.Pointer arg
 
     @newExpr.push arg
     @parse node
 
   getliteral: ->
     if not it.contains \LabelUse and not it.contains \Char
-      @newExpr.push it.literal
+      if it.symbol is \Reg
+        @newExpr.push new Argument.Register it.literal
+
+      else if it.symbol is \Literal
+        @newExpr.push new Argument.Literal it.literal
+
+      else if it.symbol is \Opcode
+        @newExpr.push it.literal
+
     else
       @parse it
 
@@ -79,32 +98,68 @@ class Compiler
     @newExpr.push '' + it.literal.charCodeAt 1
     @parse it
 
-  parseStatement: @::parse
-  parseSpaceArg: @::parse
-  parseArg: @::parse
   parseOpcode: @::getliteral
   parseReg: @::getliteral
   parseLabelUse: @::getliteral
+  parseLiteral: @::getliteral
+
+  parseDisplacement: ->
+    args = []
+    for arg in it.children
+      # console.log 'DISPLACEMENT ARGS' arg
+      if arg.symbol is \Literal
+
+        if arg.contains \Number and +arg.literal > 127 or +arg.literal < 0
+          throw new Error "Pointer displacement out of range : #{arg.literal}"
+
+        if arg.left!?literal is \-
+          arg.literal = ~arg.literal + 1
+
+        args.push new Argument.Literal arg.literal
+
+      else if arg.symbol is \Reg
+        if arg.left!?literal is \-
+          throw new Error "Cannot do substraction from a Register: #{arg.literal}"
+
+        args.push new Argument.Register arg.literal
+      else if arg.symbol isnt \Operator
+        # @parse it
+        args.push new Argument.Literal arg.literal
+        # throw 'MDR ERROR !!!'
+
+    @newExpr.push new Argument.Pointer args
 
   parseDeref: ->
     if it.contains \Displacement
-      
-    if it.contains \Var
-      @parseVar it.children[1].children.0, true
-    else
-      @getliteral it
+      @parseDisplacement it.children.0
 
-  parseLiteral: @::getliteral
+    else if it.contains \Reg
+      @newExpr.push new Argument.Pointer [new Argument.Register it.children.0.literal]
+
+    else if it.contains \Var
+      throw new Error "Unknown variable name: #{it.children.0.literal}" if not @variables[it.children.0.literal]?
+      @newExpr.push new Argument.Pointer [new Argument.Literal @variables[it.children.0.literal]]
+
+      # @parseVar it.children[0]
+
+    else if it.contains \Literal
+      if it.contains \Number and +it.children.0.literal > 127 or +it.children.0.literal < 0
+        throw new Error "Pointer displacement out of range : #{it.children.0.literal}"
+
+      @newExpr.push new Argument.Pointer [new Argument.Literal it.children.0.literal]
+    else
+      throw new Error 'Unknown deref'
 
   parseLabelUse: (node) ->
     curFile = @currentFile
+
     @newExpr.push ~>
       name = node.literal[1 to]*''
       label = @labels[curFile][name] || @globals[name]
+
       throw new Error "Unknown label: #{name}" if not label?
 
-      arg = Argument.create label
-      arg.compile!
+      new Argument.Literal(label).compile!
 
     @parse node
 
@@ -112,10 +167,13 @@ class Compiler
     if it.children.0.literal is 'global '
       if @globals[it.children.1.literal]?
         throw new Error "Redefinition of global label: #{it.children.1.literal}"
+
       @globals[it.children.1.literal] = @currAddr
+
     else
       if @labels[@currentFile][it.children.0.literal]?
         throw new Error "Redefinition of local label: #{it.children.0.literal}"
+
       @labels[@currentFile][it.children.0.literal] = @currAddr
 
     @parse it
@@ -130,7 +188,7 @@ class Compiler
     if @globals.start?
       startJump =
         \jump
-        @globals.start
+        new Argument.Literal @globals.start
 
       @lines.unshift Instruction.compile startJump
     else

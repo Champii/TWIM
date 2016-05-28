@@ -1,7 +1,6 @@
 global strlen:
   push c
 
-  #get argument
   put [bp-2] c
 
   put 0 a
@@ -18,7 +17,6 @@ global strlen:
 global putstr:
   push c
 
-  #get argument
   put [bp-2] c
 
   loop:
