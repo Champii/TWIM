@@ -1,39 +1,39 @@
 S: Statement+
 
-Block: "\n"? Tab* "{" "\n"? Statement+ Tab* "}" "\n"?
+Block: %"\n"? %Tab* %"{" %"\n"? Statement+ %Tab* %"}" %"\n"?
 
-Statement: Tab* Loop | Cond | Expression | Comment | Return | "\n" Delimiter?
+Statement: %Tab* Loop | Cond | Expression | %Comment | Return | %"\n" %Delimiter?
 
 # Statements
 Comment: "#"
-Loop: "while" TestBlock
-Cond: "if" TestBlock
+Loop: %"while" TestBlock
+Cond: %"if" TestBlock
 Expression: Assign | Value
-Return: "return " Value
+Return: %"return " Value
 
 # Conditional
-TestBlock: " "? "(" Test ")" " "? Block "\n"?
-Test: Value " "* TestOp " "* Value
+TestBlock: %" "? %"(" Test %")" %" "? Block %"\n"?
+Test: Value %" "* TestOp %" "* Value
 TestOp: "==" | "!="
 
 # Expressions
-Assign: Var " "* "=" " "* Value
+Assign: Var %" "* %"=" %" "* !Value
 Value: Inc | Literal | Call | Deref | Func | Var
 
 # Values
-Inc: Var "++"
-Literal: String | Digit+
-Call: Var "(" ValueArg* ")"
-Deref: Var "[" Value "]"
-Func: FuncArgs? "->" " "? "\n"? Block "\n"?
-Var: Letter Alphanum*
+Inc: Var %"++"
+Literal: String | %Digit+
+Call: Var %"(" ValueArg* %")"
+Deref: Var %"[" Value %"]"
+Func: FuncArgs? %"->" %" "? %"\n"? Block %"\n"?
+Var: %Letter %Alphanum*
 
 # Call
-FuncArgs: "(" VarArg+ ")" " "?
-ValueArg: Value ","? " "?
-VarArg: Var ","? " "?
+FuncArgs: %"(" VarArg+ %")" %" "?
+ValueArg: Value %","? %" "?
+VarArg: Var %","? %" "?
 
 # Special
-String: "'" Alphanum* "'"
+String: "'" %Alphanum* "'"
 Tab: "  "
 Delimiter: "\n" | ";"

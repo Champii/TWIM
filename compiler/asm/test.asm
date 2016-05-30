@@ -1,12 +1,12 @@
 db lol 1
-db ok 'Lol is equal\n'
-db nok 'Lol isnt equal\n'
+db ok 'Is equal\n'
+db nok 'Isnt equal\n'
 db next 'To do next...\n'
 db end 'This is the end\n'
 
 global start:
-  put 220 sp
-  put 220 bp
+  put 240 sp
+  put sp bp
 
   cmp [lol] 1
 

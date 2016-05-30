@@ -51,17 +51,20 @@ class Compiler
           @parse it
 
   parseVarDecl: ->
-    @variables[it.children[0].literal] = @currAddr
+    idx = 0
+    if it.children.length is 2
+      idx = 1
+      @variables[it.children[0].literal] = @currAddr
 
     if it.contains \Number
-      @lines.push [it.children[1].literal]
+      @lines.push [it.children[idx].literal]
       @currAddr += 1
 
     if it.contains \String
-      it.children[1].literal .= replace '\\n' '\n'
-      @lines.push (map (.charCodeAt(0)), it.children[1].literal[1 til -1]) ++ [0]
+      it.children[idx].literal .= replace '\\n' '\n'
+      @lines.push (map (.charCodeAt(0)), it.children[idx].literal[1 til -1]) ++ [0]
 
-      @currAddr += it.children[1].literal.length - 1
+      @currAddr += it.children[idx].literal.length - 1
 
   parseExpression: ->
     @newExpr = []
@@ -196,6 +199,7 @@ class Compiler
 
     @postParse!
 
+    console.log @lines
     @lines = Buffer.from flatten @lines
 
     fs.writeFile \./a.out @lines, (err, res) ->

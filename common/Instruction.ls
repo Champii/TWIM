@@ -54,7 +54,6 @@ class Instruction
         @args.push Argument.read(type, Ram.get8 @addr + size)
         size++
 
-
   _process: ->
     if is-type \Array @_nbArgs
       if @args.length not in @_nbArgs

@@ -4,13 +4,15 @@ Statement: %" "* LabelDecl | VarDecl | Expression | %Comment | %"\n" %"\n"?
 
 # Statements
 Comment: "#" Character*
-VarDecl: %"db " VarName %" " Literal
+VarDecl: %"db " VarName? %" "? Literal
 Expression: Opcode Args
 Args: !SpaceArg*
 LabelDecl: Global? Label %":\n"
 Global: %"global "
+
 # Args
 SpaceArg: %" "+ !Arg
+#BUG WITH VAR STARTING WITH REG LETTER
 Arg: Literal | LabelUse | Reg | Var | Deref
 Literal: Char | Number | String
 LabelUse: %":" Label

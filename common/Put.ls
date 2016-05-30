@@ -3,6 +3,7 @@ require! {
   \./Register
   \../vm/Ram
   \../vm/Stack
+  \../vm/ports/IOPorts
   \./Fault
 }
 
@@ -101,5 +102,12 @@ class Fail extends Instruction
   @register 0
   process: ->
     throw new Fault "Fail instruction occured"
+
+class Outb extends Instruction
+
+  @register 2
+  process: ->
+    console.log 'ARGS' @args.0.get!, @args.1.get!
+    IOPorts.getByAddr(@args.0.get!).write @args.0.get!, @args.1.get!
 
 module.exports = Put

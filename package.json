@@ -7,7 +7,7 @@
     "hexdump-nodejs": "^0.1.0",
     "livescript": "^1.4.0",
     "prelude-ls": "^1.1.2",
-    "tiny-parser": "0.0.5"
+    "tiny-parser": "0.0.6"
   },
   "devDependencies": {},
   "scripts": {

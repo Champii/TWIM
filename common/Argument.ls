@@ -12,14 +12,8 @@ class Argument
   (@val) ->
 
   @read = (type, val) ->
+    throw new Fault "Unknow argument type for #{@displayName}: #{type}" if not @classesArr[type]?
     new @classesArr[type] val
-
-  # @create = ->
-  #   | it[0, *-1] === <[ [ ] ]>     => new Argument.Pointer it
-  #   | it in keys TrueRegister.regs => new Argument.Register it
-  #   | is-type \Function it         => it
-  #   | is-type \Number +it          => new Argument.Literal it
-  #   | _                            => throw new Error "Cannot create argument: #{it}"
 
   @register = ->
     @typeFlag = argCount
@@ -33,31 +27,6 @@ class Argument.Literal extends Argument
 
   compile: -> +@val
   get:     -> @val
-
-/*class Argument.Pointer extends Argument
-
-  @_create = ->
-    it = it[1 til -1]*''
-    switch
-      | it in keys TrueRegister.regs => new Argument.RegisterPointer it
-      | _                            => new Argument.LiteralPointer +it
-
-class Argument.LiteralPointer extends Argument.Pointer
-
-  @register!
-
-  compile: -> @val
-  get:     -> Ram.get8 @val
-  set:     -> Ram.set8 @val, it
-
-
-class Argument.RegisterPointer extends Argument.Pointer
-
-  @register!
-
-  compile: -> TrueRegister[@val].typeFlag
-  get:     -> Ram.get8 TrueRegister.regsArr[@val].val
-  set:     -> Ram.set8 TrueRegister.regsArr[@val].val, it*/
 
 class Argument.Register extends Argument
 
@@ -125,7 +94,6 @@ class Argument.Pointer extends Argument
         else
           it.get!
       |> sum
-
 
 module.exports = Argument
 
