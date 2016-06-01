@@ -20,7 +20,7 @@ class IOPorts.VGA extends IOPorts
 
   @register 4000
 
-  @mem = []
+  @mem = map (-> ' '.charCodeAt 0), [til 4000]
 
   @write = (addr, byte) ->
     addr = addr - @addr

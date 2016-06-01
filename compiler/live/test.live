@@ -1,7 +1,21 @@
-a = 1
-b = 'trololo'
-e = a
-f = -> {
-  g = 'mdr'
+a = 48
+b = 'lol'
+
+putchar = (addr, char) -> {
+  asm('outb', addr, char)
 }
-f()
+
+putstr = (str) -> {
+  putchar(0, 48)
+  putchar(1, 49)
+  putchar(2, 50)
+}
+
+test = (a, b) -> {
+  if (a == b) {
+    putchar(0, 48)
+  }
+  putchar(1, 49)
+}
+
+test(1, 1)
