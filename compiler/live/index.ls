@@ -62,7 +62,7 @@ class Compiler
         return console.error err if err?
 
         # inspect ast
-        ast.print!
+        # ast.print!
 
         @currentFile = file
         @labels[file] = {}
@@ -184,8 +184,6 @@ class Compiler
     @parse it
 
   parseCond: ->
-    console.log 'COND' it
-      # inspect it
     @lines.push ["cmp #{@getAssignValue(it.children.0.children.0)} #{@getAssignValue(it.children.0.children.2)}"]
     okLabel = "ok#{uniqLabelId!}"
     nokLabel = "nok#{uniqLabelId!}"
@@ -215,7 +213,6 @@ class Compiler
 
     @lines = flatten ['jump :start'] ++ (map (-> 'db \'' + it + '\''), @stringDecl) ++ @funcs ++ ['global start:', 'put :stack sp', 'put sp bp'] ++ @lines ++ ['loop:', 'jump :loop', 'stack:', 'db 0']
     @lines = @lines.join '\n'
-    console.log @lines
     @lines = Buffer.from @lines
 
     fs.writeFile \/tmp/tmp.asm @lines, (err, res) ->
