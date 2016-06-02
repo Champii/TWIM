@@ -41,6 +41,7 @@ class Argument.Pointer extends Argument
   @register!
 
   _makeFlags: ->
+    # console.log 'MAKEFLAGS' @val
     if @val.length > 3
       throw new Error "Instruction.makeFlags: Too much arguments. Max = 3, Given: #{@val.length}"
 
@@ -54,11 +55,19 @@ class Argument.Pointer extends Argument
 
     nbArgs = flags .&. 3
 
+    # console.log 'DECODE' nbArgs
     types = []
     for i from 0 til nbArgs
-      types.push (flags .&. (3 .<<. 2 * (i + 1))) .>>. 2 * (i + 1)
+      type = (flags .&. (3 .<<. 2 * (i + 1))) .>>. 2 * (i + 1)
+      if type is Argument.Pointer.typeFlag
+        res = @decode addr + i + 1
 
-    new Argument.Pointer @decodeArgs types, addr
+      types.push type
+
+    ptr = new Argument.Pointer @decodeArgs types, addr
+    ptr.size = types.length
+    ptr.size += res.val.length if res?
+    ptr
 
   @decodeArgs = (types, addr)->
     args = []
@@ -69,12 +78,14 @@ class Argument.Pointer extends Argument
     args
 
   compile: ->
+    # console.log 'COMPILE' @val
     [@_makeFlags!] ++ (map (.compile!), @val)
 
   get:     ->
     s = @calcDisplacement!
     if s < 0 or s > Ram.SIZE
       throw new Fault "Address out of memory : #{s}"
+    # console.log 'GET' s, @val
     Ram.get8 s
 
   set:     ->
@@ -87,12 +98,13 @@ class Argument.Pointer extends Argument
     it .>>. 7
 
   calcDisplacement: ->
-    s = @val
+    @val
       |> map ~>
-        if it.typeFlag is Argument.Literal.typeFlag and @isHighBitSet a = it.get!
+        a = it.get!
+        if it.typeFlag is Argument.Literal.typeFlag and @isHighBitSet a
           -((~a + 1) .&. 255)
         else
-          it.get!
+          a
       |> sum
 
 module.exports = Argument

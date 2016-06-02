@@ -39,6 +39,13 @@ class Instruction
     @_process!
     @process!
 
+  # decodePointer: ->
+  #   arg = Argument.Pointer.decode @addr + size
+  #   @args.push arg
+  #
+  #   @size += arg.val.length
+  #   size += arg.val.length + 1
+
   decodeArgs: ->
     size = 2
 
@@ -47,8 +54,8 @@ class Instruction
         arg = Argument.Pointer.decode @addr + size
         @args.push arg
 
-        @size += arg.val.length
-        size += arg.val.length + 1
+        @size += arg.size
+        size += arg.size + 1
 
       else
         @args.push Argument.read(type, Ram.get8 @addr + size)

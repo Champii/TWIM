@@ -6,8 +6,9 @@ Statement: %Tab* Loop | Cond | Expression | %Comment | Return | %"\n" %Delimiter
 
 # Statements
 Comment: "#"
-Loop: %"for" TestBlock
-Cond: %"if" !TestBlock
+Loop: %"for" !TestBlock
+Cond: %"if" !TestBlock Else?
+Else: %"else" Block
 Expression: Assign | !Value
 Return: %"return " Value
 

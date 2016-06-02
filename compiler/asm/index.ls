@@ -130,18 +130,23 @@ class Compiler
         args.push new Argument.Literal arg.literal
         # throw 'MDR ERROR !!!'
 
-    @newExpr.push new Argument.Pointer args
+    args
 
-  parseDeref: ->
-    if it.contains \Displacement
-      @parseDisplacement it.children.0
+  parseDeref: (it, recur = false) ->
+    val = null
+    if it.children.0.symbol is \Deref
+      val = @parseDeref it.children.0, true
+      # val = new Argument.Register it.children.0.literal
+
+    else if it.contains \Displacement
+      val = @parseDisplacement it.children.0
 
     else if it.contains \Reg
-      @newExpr.push new Argument.Pointer [new Argument.Register it.children.0.literal]
+      val = [new Argument.Register it.children.0.literal]
 
     else if it.contains \Var
       throw new Error "Unknown variable name: #{it.children.0.literal}" if not @variables[it.children.0.literal]?
-      @newExpr.push new Argument.Pointer [new Argument.Literal @variables[it.children.0.literal]]
+      val = [new Argument.Literal @variables[it.children.0.literal]]
 
       # @parseVar it.children[0]
 
@@ -149,9 +154,15 @@ class Compiler
       if it.contains \Number and +it.children.0.literal > 127 or +it.children.0.literal < 0
         throw new Error "Pointer displacement out of range : #{it.children.0.literal}"
 
-      @newExpr.push new Argument.Pointer [new Argument.Literal it.children.0.literal]
+      val = [new Argument.Literal it.children.0.literal]
     else
       throw new Error 'Unknown deref'
+
+    inspect val
+    if recur
+      [new Argument.Pointer val]
+    else
+      @newExpr.push new Argument.Pointer val
 
   parseLabelUse: (node) ->
     curFile = @currentFile

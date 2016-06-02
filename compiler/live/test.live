@@ -1,21 +1,16 @@
-a = 48
-b = 'lol'
-
 putchar = (addr, char) -> {
   asm('outb', addr, char)
 }
 
 putstr = (str) -> {
-  putchar(0, 48)
-  putchar(1, 49)
-  putchar(2, 50)
-}
-
-test = (a, b) -> {
-  if (a == b) {
-    putchar(0, 48)
+  a = 0
+  b = *str
+  for (b != 0) {
+    putchar(a, b)
+    str++
+    b = *str
+    a++
   }
-  putchar(1, 49)
 }
 
-test(1, 1)
+putstr('abc')

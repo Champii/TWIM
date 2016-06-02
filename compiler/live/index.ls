@@ -62,7 +62,7 @@ class Compiler
         return console.error err if err?
 
         # inspect ast
-        # ast.print!
+        ast.print!
 
         @currentFile = file
         @labels[file] = {}
@@ -90,6 +90,11 @@ class Compiler
       # @stringDecl = @stringDecl ++ (map (.charCodeAt(0)), it.literal[1 til -1]) ++ [0]
       @stringDecl.push it.literal[1 til -1]*''
 
+    else if it.contains \Deref
+      if not @contexts.get(it.children.0.literal)
+        throw new Error "Unknown variable #{it.children.0.literal}"
+
+      val = "[[bp#{@contexts.get(it.children.0.literal)}]]"
     else if it.contains \Var
       if not @contexts.get(it.literal)
         throw new Error "Unknown variable #{it.literal}"
@@ -144,15 +149,17 @@ class Compiler
     @contexts.pop!
 
   getValue: ->
-
+    console.log 'GETVALUE' it
     switch
     | it.symbol is \Var     =>
+      console.log 'VAR' it
       if not @contexts.get(it.literal)
         throw new Error "Unknown variable #{it.literal}"
       "[bp#{@contexts.get(it.literal)}]"
     | it.symbol is \Deref   =>
+      console.log 'DEREF' it
       if not @contexts.get(it.children.0.literal)
-        throw new Error "Unknown variable #{it.literal}"
+        throw new Error "Unknown variable #{it.children.0.literal}"
       "[[bp#{@contexts.get(it.children.0.literal)}]]"
     | it.symbol is \Literal =>
       switch
@@ -181,7 +188,22 @@ class Compiler
       @contexts.set arg.literal, - 2 - i
 
   parseLoop: ->
+    okLabel = "ok#{uniqLabelId!}"
+    nokLabel = "nok#{uniqLabelId!}"
+    loopLabel = "loop#{uniqLabelId!}"
+    @lines.push ["#{loopLabel}:"]
+    @lines.push ["cmp #{@getAssignValue(it.children.0.children.0)} #{@getAssignValue(it.children.0.children.2)}"]
+    if it.children.0.children.1.literal is \==
+      @lines.push ["jeq :#{okLabel}"]
+      @lines.push ["jneq :#{nokLabel}"]
+    if it.children.0.children.1.literal is \!=
+      @lines.push ["jneq :#{okLabel}"]
+      @lines.push ["jeq :#{nokLabel}"]
+
+    @lines.push ["#{okLabel}:"]
     @parse it
+    @lines.push ["jump :#{loopLabel}"]
+    @lines.push ["#{nokLabel}:"]
 
   parseCond: ->
     @lines.push ["cmp #{@getAssignValue(it.children.0.children.0)} #{@getAssignValue(it.children.0.children.2)}"]
@@ -199,6 +221,8 @@ class Compiler
     @lines.push ["#{nokLabel}:"]
 
   parseInc: ->
+    if not @contexts.get(it.children.0.literal)
+      throw new Error "Unknown variable #{it.literal}"
     @lines.push ["inc [bp#{@contexts.get(it.children.0.literal)}]"]
 
   postParse: ->
@@ -211,9 +235,11 @@ class Compiler
 
     @postParse!
 
-    @lines = flatten ['jump :start'] ++ (map (-> 'db \'' + it + '\''), @stringDecl) ++ @funcs ++ ['global start:', 'put :stack sp', 'put sp bp'] ++ @lines ++ ['loop:', 'jump :loop', 'stack:', 'db 0']
+    @lines = flatten (map (-> 'db \'' + it + '\''), @stringDecl) ++ @funcs ++ ['global start:', 'put :stack sp', 'put sp bp'] ++ @lines ++ ['loop:', 'jump :loop', 'stack:', 'db 0']
     @lines = @lines.join '\n'
+    console.log @lines
     @lines = Buffer.from @lines
+
 
     fs.writeFile \/tmp/tmp.asm @lines, (err, res) ->
       return console.error err if err?
@@ -222,7 +248,7 @@ class Compiler
       exec "lsc ./compiler/asm/index.ls /tmp/tmp.asm", (err, stdout, stderr) ->
         return console.error err if err?
 
-        # console.log 'RES' err, stdout, stderr
+        console.log 'RES' stdout
 
         console.log 'Done'
 
