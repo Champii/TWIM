@@ -3,6 +3,7 @@ global import require \prelude-ls
 require! {
   fs
   \./Ram
+  \./ports/IOPorts
   \../common/Instruction
   \../common/Argument
   \../common/Register
@@ -26,6 +27,7 @@ class Twio
       done!
 
   run: ->
+    IOPorts.VGA.clear!
     loop
       @cycle!
 

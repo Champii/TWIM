@@ -25,7 +25,8 @@ Value: Inc | Literal | Call | Deref | IdxDeref | Func | Var
 Inc: Var %"++"
 Literal: String | Number
 Call: Var %"(" Args %")"
-Deref: %"*" Var
+Deref: StarDeref | IdxDeref
+StarDeref: %"*" Var
 IdxDeref: Var %"[" Value %"]"
 Func: FuncArgsDecl? %"->" %" "? %"\n"? Block %"\n"?
 Var: %Letter %Alphanum*
@@ -37,6 +38,6 @@ ValueArg: !Value %","? %" "?
 VarArg: Var %","? %" "?
 
 # Special
-String: %"'" %Alphanum* %"'"
+String: %"'" %Character* %"'"
 Tab: "  "
 Delimiter: "\n" | ";"

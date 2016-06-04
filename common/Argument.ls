@@ -41,7 +41,6 @@ class Argument.Pointer extends Argument
   @register!
 
   _makeFlags: ->
-    # console.log 'MAKEFLAGS' @val
     if @val.length > 3
       throw new Error "Instruction.makeFlags: Too much arguments. Max = 3, Given: #{@val.length}"
 
@@ -55,37 +54,41 @@ class Argument.Pointer extends Argument
 
     nbArgs = flags .&. 3
 
-    # console.log 'DECODE' nbArgs
     types = []
     for i from 0 til nbArgs
-      type = (flags .&. (3 .<<. 2 * (i + 1))) .>>. 2 * (i + 1)
-      if type is Argument.Pointer.typeFlag
-        res = @decode addr + i + 1
-
-      types.push type
+      types.push ((flags .&. (3 .<<. 2 * (i + 1))) .>>. 2 * (i + 1))
 
     ptr = new Argument.Pointer @decodeArgs types, addr
-    ptr.size = types.length
-    ptr.size += res.val.length if res?
+    ptr.size = @fullSize ptr
     ptr
+
+  @fullSize = ->
+    size = 0
+    for arg in it.val
+      if is-type \Array arg.val
+        size += @fullSize arg
+      size += 1
+    size
 
   @decodeArgs = (types, addr)->
     args = []
     size = 1
     for type, i in types
-      args.push Argument.read(type, Ram.get8 addr + size)
+      if type is Argument.Pointer.typeFlag
+        val = @decode addr + size
+      else
+        val = Argument.read(type, Ram.get8 addr + size)
+      args.push val
       size++
     args
 
   compile: ->
-    # console.log 'COMPILE' @val
     [@_makeFlags!] ++ (map (.compile!), @val)
 
   get:     ->
     s = @calcDisplacement!
     if s < 0 or s > Ram.SIZE
       throw new Fault "Address out of memory : #{s}"
-    # console.log 'GET' s, @val
     Ram.get8 s
 
   set:     ->

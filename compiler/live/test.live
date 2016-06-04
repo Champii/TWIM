@@ -1,16 +1,25 @@
-putchar = (addr, char) -> {
-  asm('outb', addr, char)
+a = 0
+
+fail = -> {
+  asm('fail')
+}
+
+halt = -> {
+  asm('halt')
+}
+
+putchar = (char) -> {
+  asm('outb', a, char)
+  a++
 }
 
 putstr = (str) -> {
-  a = 0
-  b = *str
-  for (b != 0) {
-    putchar(a, b)
+  for (*str != 0) {
+    putchar(*str)
     str++
-    b = *str
-    a++
   }
 }
 
-putstr('abc')
+putstr('GGWP\n')
+
+halt()

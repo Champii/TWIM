@@ -106,8 +106,11 @@ class Fail extends Instruction
 class Outb extends Instruction
 
   @register 2
-  process: ->
-    console.log 'ARGS' @args.0.get!, @args.1.get!
-    IOPorts.getByAddr(@args.0.get!).write @args.0.get!, @args.1.get!
+  process: -> IOPorts.getByAddr(@args.0.get!).write @args.0.get!, @args.1.get!
+
+class Halt extends Instruction
+
+  @register 0
+  process: -> process.exit!
 
 module.exports = Put

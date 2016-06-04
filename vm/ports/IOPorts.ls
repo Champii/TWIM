@@ -1,4 +1,7 @@
+require! readline
+
 portAddr = 0
+
 class IOPorts
 
   @ports = {}
@@ -22,14 +25,23 @@ class IOPorts.VGA extends IOPorts
 
   @mem = map (-> ' '.charCodeAt 0), [til 4000]
 
+  @clear = ->
+    @mem = map (-> ' '.charCodeAt 0), [til 4000]
+    process.stdout.write('\033c');
+
+    @stream = readline.createInterface do
+      input: process.stdin
+      output: process.stdout
+
+
   @write = (addr, byte) ->
     addr = addr - @addr
     @mem[addr] = byte
-    @print!
+    readline.cursorTo @stream, addr % 80, addr / 80
+    process.stdout.write String.fromCharCode byte
+    # @print!
 
-  @print = ->
-    process.stdout.write('\033c');
-    each (-> process.stdout.write String.fromCharCode it), @mem
+    # each (-> process.stdout.write String.fromCharCode it), @mem
 
 
 module.exports = IOPorts

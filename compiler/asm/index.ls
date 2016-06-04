@@ -109,8 +109,11 @@ class Compiler
   parseDisplacement: ->
     args = []
     for arg in it.children
-      # console.log 'DISPLACEMENT ARGS' arg
-      if arg.symbol is \Literal
+
+      if arg.symbol is \Deref
+        a = @parseDeref arg, true
+
+      else if arg.symbol is \Literal
 
         if arg.contains \Number and +arg.literal > 127 or +arg.literal < 0
           throw new Error "Pointer displacement out of range : #{arg.literal}"
@@ -134,6 +137,7 @@ class Compiler
 
   parseDeref: (it, recur = false) ->
     val = null
+
     if it.children.0.symbol is \Deref
       val = @parseDeref it.children.0, true
       # val = new Argument.Register it.children.0.literal
@@ -158,7 +162,7 @@ class Compiler
     else
       throw new Error 'Unknown deref'
 
-    inspect val
+    # inspect val
     if recur
       [new Argument.Pointer val]
     else
@@ -210,7 +214,7 @@ class Compiler
 
     @postParse!
 
-    console.log @lines
+    # console.log @lines
     @lines = Buffer.from flatten @lines
 
     fs.writeFile \./a.out @lines, (err, res) ->

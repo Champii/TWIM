@@ -39,13 +39,6 @@ class Instruction
     @_process!
     @process!
 
-  # decodePointer: ->
-  #   arg = Argument.Pointer.decode @addr + size
-  #   @args.push arg
-  #
-  #   @size += arg.val.length
-  #   size += arg.val.length + 1
-
   decodeArgs: ->
     size = 2
 
@@ -84,7 +77,6 @@ class Instruction
     res = args.length
     for arg, i in args
       res += arg.typeFlag .<<. (2 * (i + 1))
-      /*if arg.typeFlag is*/
     res
 
   @showFlags = ->

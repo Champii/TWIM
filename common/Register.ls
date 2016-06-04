@@ -59,6 +59,9 @@ class Register.IP extends Register
 class Register.CR extends Register
   @register!
 
+class Register.BSP extends Register
+  @register!
+
 class Register.SP extends Register
   @register!
 

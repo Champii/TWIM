@@ -13,10 +13,10 @@ Global: %"global "
 # Args
 SpaceArg: %" "+ !Arg
 #BUG WITH VAR STARTING WITH REG LETTER
-Arg: Literal | LabelUse | Reg | Var | Deref
+Arg: Deref | Literal | LabelUse | Reg | Var
 Literal: Char | Number | String
 LabelUse: %":" Label
-Reg: "bp" | "ip" | "cr" | "sp" | "a" | "b" | "c" | "d"
+Reg: "bsp" | "bp" | "ip" | "cr" | "sp" | "a" | "b" | "c" | "d"
 Var: %Letter+
 Deref: %"[" Displacement | !Arg %"]"
 
@@ -26,7 +26,7 @@ Operator: "+" | "-"
 
 # Literals
 String: %"'" %Character+ %"'"
-Char: %"'" Letter | Digit %"'"
+Char: %"'" Character %"'"
 VarName: %Letter+
 Opcode: %Letter+
 Label: %Letter %Alphanum*
