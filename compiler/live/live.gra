@@ -1,12 +1,12 @@
 S: !Statement+
 
-Block: %"\n"? Tab* %"{"? %"\n"? !Statement* Tab* %"}"? %"\n"?
+Block: %"\n"? %Tab* %"{" %"\n"? !Statement* %Tab* %"}" %"\n"?
 
-Statement: Tab* Loop | Cond | Expression | %Comment | Return | %"\n" %Delimiter?
+Statement: %Tab* Loop | Cond | Expression | %Comment | Return | %"\n" %Delimiter?
 
 # Statements
 Comment: "#"
-Loop: %"for" !TestBlock
+Loop: %"for" | %"while" !TestBlock
 Cond: %"if" !TestBlock Else?
 Else: %"else" Block
 Expression: Assign | !Value
@@ -15,11 +15,16 @@ Return: %"return " Value
 # Conditional
 TestBlock: %" "? Test %" "? Block %"\n"?
 Test: Value %" "* TestOp %" "* Value
-TestOp: "==" | "!="
+TestOp: "isnt" | "is"
 
 # Expressions
 Assign: Var %" "* %"=" %" "* !Value
-Value: Inc | Literal | Call | Deref | IdxDeref | Func | Var
+Value: Inc | Operation | Call | Literal | Deref | IdxDeref | Var | Func
+
+#Operation
+Operand: Var | Call | Literal | Deref | IdxDeref | Var
+Operation: !Operand %" "+ Operator %" "+ !Operation | !Operand
+Operator: "+" | "-" | "*" | "/"
 
 # Values
 Inc: Var %"++"

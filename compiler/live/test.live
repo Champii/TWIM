@@ -11,10 +11,10 @@ putchar = (char) ->
   a++
 
 putstr = (str) ->
-  for *str != 0
+  while *str isnt 0
     putchar *str
     str++
 
-putstr 'GGWP\n'
+putstr 'GGwp\n'
 
 halt!

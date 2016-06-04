@@ -13,7 +13,7 @@ require! {
 
 preprocessor = (filename, done) ->
   fs.readFile filename, (err, file) ~>
-    throw new Error "Preprocessor: Unknown file #{err}" if err?
+    return done "Preprocessor: Unknown file #{err}" if err?
 
     lines = file.toString!split \\n
     tabCount = 0
@@ -31,8 +31,11 @@ preprocessor = (filename, done) ->
         tabCount = newTabCount
 
     newFileName = "/tmp/#{filename.split('/')[*-1]}_POSTPROC.live"
+    # console.log lines.join \\n
     fs.writeFile newFileName, lines.join(\\n), (err, res) ->
-      return done null, newFileName
+      return done err if err?
+
+      done null, newFileName
 
 
 
@@ -111,12 +114,13 @@ class Compiler
     async.eachSeries args, (file, done) ~>
       # prepro = new Preprocessor file
       test = preprocessor file, (err, filename) ~>
-        console.log 'test', filename
+        return console.error err if err?
+
         tiny path.resolve(__dirname, \./live.gra), filename, (err, ast) ~>
           return console.error err if err?
 
           # inspect ast
-          ast.print!
+          # ast.print!
           # return
 
           @currentFile = file
@@ -184,7 +188,10 @@ class Compiler
     if it.contains \Func
       return @parse it
 
-    val = @parse it.children.1
+    if it.contains \Operation
+      val = @parseOperation it.children.1
+    else
+      val = @parse it.children.1
 
     if isNew
       @lines.push ["push #{val}"]
@@ -237,6 +244,7 @@ class Compiler
           val = @parse arg
           @lines.push ["push #{val}"]
           after.push ["pop"]
+
       @lines.push ["call :#{it.children.0.literal}"]
       @lines.splice.apply @lines, [@lines.length, 0] ++ after
     # @parse it
@@ -246,6 +254,23 @@ class Compiler
       @contexts.set arg.literal, - 2 - i
     # console.log @contexts.contexts
 
+  parseOperation: ->
+    # console.log \OPERATION @parse it
+
+    op = ''
+    @lines.push ["put #{@parse it.children.0} d"]
+    for term, i in tail it.children
+      if term.symbol is \Operator
+        op = switch term.literal
+          | \+ => \add
+          | \- => \sub
+          | \* => \mul
+          | \/ => \div
+        @lines.push ["#{op} #{@parse it.children[i + 2]} d"]
+
+    'd'
+
+
   parseLoop: ->
     # console.log 'LOOP'
     okLabel = "ok#{uniqLabelId!}"
@@ -253,10 +278,10 @@ class Compiler
     loopLabel = "loop#{uniqLabelId!}"
     @lines.push ["#{loopLabel}:"]
     @lines.push ["cmp #{@parse(it.children.0.children.0)} #{@parse(it.children.0.children.2)}"]
-    if it.children.0.children.1.literal is \==
+    if it.children.0.children.1.literal is 'is'
       @lines.push ["jeq :#{okLabel}"]
       @lines.push ["jneq :#{nokLabel}"]
-    if it.children.0.children.1.literal is \!=
+    else if it.children.0.children.1.literal is 'isnt'
       @lines.push ["jneq :#{okLabel}"]
       @lines.push ["jeq :#{nokLabel}"]
 
@@ -270,10 +295,10 @@ class Compiler
     @lines.push ["cmp #{@parse(it.children.0.children.0)} #{@parse(it.children.0.children.2)}"]
     okLabel = "ok#{uniqLabelId!}"
     nokLabel = "nok#{uniqLabelId!}"
-    if it.children.0.children.1.literal is \==
+    if it.children.0.children.1.literal is 'is'
       @lines.push ["jeq :#{okLabel}"]
       @lines.push ["jneq :#{nokLabel}"]
-    if it.children.0.children.1.literal is \!=
+    else if it.children.0.children.1.literal is 'isnt'
       @lines.push ["jneq :#{okLabel}"]
       @lines.push ["jeq :#{nokLabel}"]
 

@@ -59,6 +59,16 @@ class Sub extends Instruction
   @register 2
   process: -> @args.1.set @args.1.get! - @args.0.get!
 
+class Mul extends Instruction
+
+  @register 2
+  process: -> @args.1.set @args.0.get! * @args.1.get!
+
+class Div extends Instruction
+
+  @register 2
+  process: -> @args.1.set @args.1.get! / @args.0.get!
+
 class Inc extends Instruction
 
   @register 1
