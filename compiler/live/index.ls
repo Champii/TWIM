@@ -11,6 +11,46 @@ require! {
   \../../common/Instruction
 }
 
+preprocessor = (filename, done) ->
+  fs.readFile filename, (err, file) ~>
+    throw new Error "Preprocessor: Unknown file #{err}" if err?
+
+    lines = file.toString!split \\n
+    tabCount = 0
+    nbOpen = 0
+    for line, i in lines
+      newTabCount = countTabs line
+      if tabCount < newTabCount
+        lines[i - 1] = lines[i - 1] + ' {'
+        tabCount = newTabCount
+        nbOpen++
+      else if tabCount > newTabCount
+        for j from 0 til tabCount - newTabCount
+          lines.splice i, 0, ('  ').repeat(j) + '}'
+          nbOpen--
+        tabCount = newTabCount
+
+    newFileName = "/tmp/#{filename.split('/')[*-1]}_POSTPROC.live"
+    fs.writeFile newFileName, lines.join(\\n), (err, res) ->
+      return done null, newFileName
+
+
+
+countTabs = ->
+    i = 0
+    count = 0
+    while i < it.length - 1
+      if it[i] is ' ' and it[i + 1] is ' '
+        count++
+        i += 2
+      else
+        i++
+    count
+
+
+
+
+
 class Context
 
   contexts: [{}]
@@ -69,18 +109,22 @@ class Compiler
 
     console.log 'Transpiling to asm...'
     async.eachSeries args, (file, done) ~>
-      tiny path.resolve(__dirname, \./live.gra), file, (err, ast) ~>
-        return console.error err if err?
+      # prepro = new Preprocessor file
+      test = preprocessor file, (err, filename) ~>
+        console.log 'test', filename
+        tiny path.resolve(__dirname, \./live.gra), filename, (err, ast) ~>
+          return console.error err if err?
 
-        # inspect ast
-        # ast.print!
+          # inspect ast
+          ast.print!
+          # return
 
-        @currentFile = file
-        @labels[file] = {}
+          @currentFile = file
+          @labels[file] = {}
 
-        map @~parse, ast.children
+          map @~parse, ast.children
 
-        done!
+          done!
 
     , (err) ~>
       return console.error err if err?

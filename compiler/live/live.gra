@@ -1,8 +1,8 @@
 S: !Statement+
 
-Block: %"\n"? %Tab* %"{" %"\n"? !Statement* %Tab* %"}" %"\n"?
+Block: %"\n"? Tab* %"{"? %"\n"? !Statement* Tab* %"}"? %"\n"?
 
-Statement: %Tab* Loop | Cond | Expression | %Comment | Return | %"\n" %Delimiter?
+Statement: Tab* Loop | Cond | Expression | %Comment | Return | %"\n" %Delimiter?
 
 # Statements
 Comment: "#"
@@ -13,7 +13,7 @@ Expression: Assign | !Value
 Return: %"return " Value
 
 # Conditional
-TestBlock: %" "? %"(" Test %")" %" "? Block %"\n"?
+TestBlock: %" "? Test %" "? Block %"\n"?
 Test: Value %" "* TestOp %" "* Value
 TestOp: "==" | "!="
 
@@ -24,7 +24,7 @@ Value: Inc | Literal | Call | Deref | IdxDeref | Func | Var
 # Values
 Inc: Var %"++"
 Literal: String | Number
-Call: Var %"(" Args %")"
+Call: Var !ParensCall | !SpaceCall | !BangCall
 Deref: StarDeref | IdxDeref
 StarDeref: %"*" Var
 IdxDeref: Var %"[" Value %"]"
@@ -32,6 +32,9 @@ Func: FuncArgsDecl? %"->" %" "? %"\n"? Block %"\n"?
 Var: %Letter %Alphanum*
 
 #! Call
+ParensCall: %"(" Args %")"
+SpaceCall: %" " Args
+BangCall: %"!"
 Args: !ValueArg*
 FuncArgsDecl: %"(" !VarArg+ %")" %" "?
 ValueArg: !Value %","? %" "?
