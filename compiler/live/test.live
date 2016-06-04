@@ -1,20 +1,31 @@
-a = 0
-
-fail = ->
-  asm 'fail'
+cursorW = 0
+cursorH = 0
+maxWidth = 80
+maxHeight = 25
 
 halt = ->
   asm 'halt'
 
+outb = (pos, char) ->
+  asm 'outb', pos, char
+
+strlen = ->
+  b = 9
+  return b
+
 putchar = (char) ->
-  asm 'outb', a, char
-  a++
+  pos = cursorH * maxWidth + cursorW
+  outb pos, char
+  cursorW++
+  if cursorW is maxWidth
+    cursorW = 0
+    cursorH++
 
 putstr = (str) ->
   while *str isnt 0
     putchar *str
     str++
 
-putstr 'GGwp\n'
+putstr 'lol'
 
 halt!

@@ -15,24 +15,26 @@ preprocessor = (filename, done) ->
   fs.readFile filename, (err, file) ~>
     return done "Preprocessor: Unknown file #{err}" if err?
 
-    lines = file.toString!split \\n
+    instr = file.toString!split \\n
+    instrOrig = file.toString!split \\n
     tabCount = 0
-    nbOpen = 0
-    for line, i in lines
+    i = 0
+    while i < instrOrig.length
+      line = instrOrig[i]
+
       newTabCount = countTabs line
       if tabCount < newTabCount
-        lines[i - 1] = lines[i - 1] + ' {'
+        instrOrig[i - 1] = instrOrig[i - 1] + ' {'
         tabCount = newTabCount
-        nbOpen++
       else if tabCount > newTabCount
         for j from 0 til tabCount - newTabCount
-          lines.splice i, 0, ('  ').repeat(j) + '}'
-          nbOpen--
+          instrOrig.splice i - j, 0, ('  ').repeat(j) + '}'
+          i += 1
         tabCount = newTabCount
+      i++
 
     newFileName = "/tmp/#{filename.split('/')[*-1]}_POSTPROC.live"
-    # console.log lines.join \\n
-    fs.writeFile newFileName, lines.join(\\n), (err, res) ->
+    fs.writeFile newFileName, instrOrig.join(\\n), (err, res) ->
       return done err if err?
 
       done null, newFileName
@@ -49,10 +51,6 @@ countTabs = ->
       else
         i++
     count
-
-
-
-
 
 class Context
 
@@ -95,6 +93,7 @@ uniqLabelId = ->
 
 inspect = -> console.log util.inspect it, {depth: null}
 
+
 class Compiler
 
   (args) ->
@@ -113,7 +112,7 @@ class Compiler
     console.log 'Transpiling to asm...'
     async.eachSeries args, (file, done) ~>
       # prepro = new Preprocessor file
-      test = preprocessor file, (err, filename) ~>
+      preprocessor file, (err, filename) ~>
         return console.error err if err?
 
         tiny path.resolve(__dirname, \./live.gra), filename, (err, ast) ~>
@@ -190,6 +189,8 @@ class Compiler
 
     if it.contains \Operation
       val = @parseOperation it.children.1
+    else if it.contains \Call
+      val = @parseCall it.children.1
     else
       val = @parse it.children.1
 
@@ -199,16 +200,18 @@ class Compiler
       @lines.push ["put #{val} [#{@contexts.ctx(it.children.0.literal)}#{@contexts.get(it.children.0.literal)}]"]
 
 
+  parseReturn: ->
+    @lines.push ["put #{@parse it.children.0} a", "jump :endFunc#{labelInc}"]
+
   parseFunc: ->
-    # console.log 'Func' it
     @contexts.push!
 
     @linesBak = @lines
     @lines = @funcs
 
-    # console.log 'LOL'
     @lines.push ["#{it.left!literal}:"]
     @parse it
+    @lines.push ["endFunc#{uniqLabelId!}:"]
     @contexts.contexts.0
       |> values
       |> filter (>= 0)
@@ -222,17 +225,13 @@ class Compiler
     @contexts.pop!
 
   parseCall: ->
-    # console.log 'CALL'
     if it.children?.0.literal is \asm
       line = ""
       for arg in it.children.1.children
-        # line += @getValue(arg) + " "
         r = @parse(arg)
-        # console.log 'PARSECALL' @stringDecl
         if arg.contains \String
           r = @stringDecl[*-1]
         line += r + " "
-        # console.log 'LINE' arg, line
       line = line[til -1]*''
       @lines.push [line]
       line
@@ -240,22 +239,20 @@ class Compiler
       after = []
       if it?.children?.1?.children?
         for arg in it.children.1.children
-          # val = @parse arg
           val = @parse arg
           @lines.push ["push #{val}"]
           after.push ["pop"]
 
       @lines.push ["call :#{it.children.0.literal}"]
       @lines.splice.apply @lines, [@lines.length, 0] ++ after
-    # @parse it
+
+    'a'
 
   parseFuncArgsDecl: ->
     for arg, i in reverse it.children
       @contexts.set arg.literal, - 2 - i
-    # console.log @contexts.contexts
 
   parseOperation: ->
-    # console.log \OPERATION @parse it
 
     op = ''
     @lines.push ["put #{@parse it.children.0} d"]

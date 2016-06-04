@@ -116,7 +116,8 @@ class Fail extends Instruction
 class Outb extends Instruction
 
   @register 2
-  process: -> IOPorts.getByAddr(@args.0.get!).write @args.0.get!, @args.1.get!
+  process: ->
+    IOPorts.getByAddr(@args.0.get!).write @args.0.get!, @args.1.get!
 
 class Halt extends Instruction
 
