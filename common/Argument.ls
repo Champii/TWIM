@@ -11,9 +11,14 @@ class Argument
 
   (@val) ->
 
-  @read = (type, val) ->
+  @read = (type, addr) ->
     throw new Fault "Unknow argument type for #{@displayName}: #{type}" if not @classesArr[type]?
-    new @classesArr[type] val
+    getSize = @classesArr[type].size * 8
+    val = Ram["get#{getSize}"] addr
+    # console.log 'READ' @classesArr[type].size, val, reverse Ram.intToBytes val
+    res = new @classesArr[type] val
+    res.size = @classesArr[type].size
+    res
 
   @register = ->
     @typeFlag = argCount
@@ -24,13 +29,23 @@ class Argument
 class Argument.Literal extends Argument
 
   @register!
+  @size = 2
+  size: 2
 
-  compile: -> +@val
+  compile: ->
+    bytes = Ram.intToBytes +@val
+    while bytes.length < @size
+      bytes.unshift 0
+    # console.log 'LITERAL' bytes, @size
+    bytes
+
   get:     -> @val
 
 class Argument.Register extends Argument
 
   @register!
+  @size = 1
+  size: 1
 
   compile: -> TrueRegister[@val].typeFlag
   get:     -> TrueRegister.regsArr[@val].val
@@ -39,18 +54,25 @@ class Argument.Register extends Argument
 class Argument.Pointer extends Argument
 
   @register!
+  @size = 1
+  size: 1
+
+  (val, @ptrSize = Ram.BYTES) ->
+    super val
 
   _makeFlags: ->
     if @val.length > 3
       throw new Error "Instruction.makeFlags: Too much arguments. Max = 3, Given: #{@val.length}"
 
-    res = @val.length
+    flags = @val.length
     for arg, i in @val
-      res += arg.typeFlag .<<. (2 * (i + 1))
-    res
+      flags += arg.typeFlag .<<. (2 * (i + 1))
+
+    [flags, @ptrSize]
 
   @decode = (addr) ->
     flags = Ram.get8 addr
+    ptrSize = Ram.get8 addr + 1
 
     nbArgs = flags .&. 3
 
@@ -58,28 +80,34 @@ class Argument.Pointer extends Argument
     for i from 0 til nbArgs
       types.push ((flags .&. (3 .<<. 2 * (i + 1))) .>>. 2 * (i + 1))
 
-    ptr = new Argument.Pointer @decodeArgs types, addr
+    ptr = new Argument.Pointer (@decodeArgs types, addr), ptrSize
     ptr.size = @fullSize ptr
+    # console.log 'PTR SIZE' ptr
     ptr
 
   @fullSize = ->
-    size = 0
+    size = 1
     for arg in it.val
       if is-type \Array arg.val
         size += @fullSize arg
-      size += 1
+      size += arg.size
     size
 
   @decodeArgs = (types, addr)->
     args = []
-    size = 1
+    size = 2
     for type, i in types
       if type is Argument.Pointer.typeFlag
         val = @decode addr + size
+        # console.log 'DECODE' val
+        size += val.size
       else
-        val = Argument.read(type, Ram.get8 addr + size)
+        val = Argument.read type, addr + size
+        # console.log 'DECODE' val
+        # size += val.size
+        size++
       args.push val
-      size++
+      # size++
     args
 
   compile: ->
@@ -89,23 +117,24 @@ class Argument.Pointer extends Argument
     s = @calcDisplacement!
     if s < 0 or s > Ram.SIZE
       throw new Fault "Address out of memory : #{s}"
-    Ram.get8 s
+    # console.log 'GET' s
+    Ram[\get + @ptrSize * 8] s
 
   set:     ->
     s = @calcDisplacement!
     if s < 0 or s > Ram.SIZE
       throw new Fault "Address out of memory : #{s}"
-    Ram.set8 s, it
+    Ram[\set + @ptrSize * 8] s, it
 
   isHighBitSet: ->
-    it .>>. 7
+    it .>>. Ram.BITS - 1
 
   calcDisplacement: ->
     @val
       |> map ~>
         a = it.get!
         if it.typeFlag is Argument.Literal.typeFlag and @isHighBitSet a
-          -((~a + 1) .&. 255)
+          -((~a + 1) .&. (Ram.SIZE - 1))
         else
           a
       |> sum

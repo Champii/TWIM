@@ -3,19 +3,16 @@ cursorH = 0
 maxWidth = 80
 maxHeight = 25
 
-halt = ->
-  asm 'halt'
-
-outb = (pos, char) ->
-  asm 'outb', pos, char
-
-strlen = ->
-  b = 9
+strlen = (str) ->
+  b = 0
+  while *str isnt 0
+    b++
+    str++
   return b
 
 putchar = (char) ->
   pos = cursorH * maxWidth + cursorW
-  outb pos, char
+  asm 'outb', pos, char
   cursorW++
   if cursorW is maxWidth
     cursorW = 0
@@ -28,4 +25,4 @@ putstr = (str) ->
 
 putstr 'lol'
 
-halt!
+asm 'halt'

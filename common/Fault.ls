@@ -4,6 +4,7 @@ require! {
   \../vm/Ram
 }
 
+hasHexdump = false
 class Fault
 
   (message) ->
@@ -27,8 +28,8 @@ class Fault
 
     Memory (#{Ram.data.length}B):
 
-    #{hexdump new Buffer(Ram.data, \hex)}
-"""
+    #{if hasHexdump then hexdump new Buffer(Ram.data, \hex) else ""}
+    """
     console.error
     process.exit!
 

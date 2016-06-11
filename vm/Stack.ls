@@ -6,12 +6,12 @@ require! {
 class Stack
 
   @push = ->
-    Register.sp.val += 1
-    Ram.set8 Register.sp.val, it
+    Register.sp.val += Ram.BYTES
+    Ram.setMax Register.sp.val, it
 
   @pop = ->
-    ret = Ram.get8 Register.sp.val
-    Register.sp.val -= 1
+    ret = Ram.getMax Register.sp.val
+    Register.sp.val -= Ram.BYTES
     ret
 
 module.exports = Stack

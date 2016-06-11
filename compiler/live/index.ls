@@ -331,7 +331,7 @@ class Compiler
       exec "lsc ./compiler/asm/index.ls /tmp/tmp.asm", (err, stdout, stderr) ->
         return console.error err if err?
 
-        # console.log 'RES' stdout, stderr
+        console.log 'RES' stdout, stderr
 
         console.log 'Done'
 

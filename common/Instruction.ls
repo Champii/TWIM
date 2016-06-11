@@ -17,7 +17,7 @@ class Instruction
   @ops = {}
   @opsArr = []
 
-  size: 1
+  # size: 2
 
   (@addr) ->
     @args = []
@@ -33,28 +33,28 @@ class Instruction
     for i from 0 til @nbArgs
       types.push (@flags .&. (3 .<<. 2 * (i + 1))) .>>. 2 * (i + 1)
 
-    @size = @nbArgs + 2
+    @size = 2
 
     @decodeArgs types
     @_process!
     @process!
 
   decodeArgs: ->
-    size = 2
 
     for type, i in it
       if type is Argument.Pointer.typeFlag
-        arg = Argument.Pointer.decode @addr + size
+        arg = Argument.Pointer.decode @addr + @size
         @args.push arg
 
-        @size += arg.size
-        size += arg.size + 1
+        @size += arg.size + 1
 
       else
-        @args.push Argument.read(type, Ram.get8 @addr + size)
-        size++
+        @args.push arg = Argument.read type, @addr + @size
+        @size += arg.size
+        # size++
 
   _process: ->
+    # console.log 'INSTR ARGS' @args
     if is-type \Array @_nbArgs
       if @args.length not in @_nbArgs
         throw new BadArgumentFault "#{@name}: #{@args.length}"
@@ -102,7 +102,9 @@ class Instruction
     @ops[op]._compile args
 
   @_compile = (args) ->
-    flatten ([@op, @makeFlags args] ++ map (-> if it.compile?!? => that else it), args)
+    lol = flatten ([@op, @makeFlags args] ++ map (-> if it.compile?!? => that else it), args)
+    # console.log "PTDR" lol
+    lol
 
 # Load every instructions
 fs.readdir __dirname, (err, list) ->

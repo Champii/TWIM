@@ -4,7 +4,8 @@ Statement: %" "* LabelDecl | VarDecl | Expression | %Comment | %"\n" %"\n"?
 
 # Statements
 Comment: "#" Character*
-VarDecl: %"db " VarName? %" "? Literal
+VarDecl: VarSize %" " VarName? %" "? Literal
+VarSize: "d" "b" | "w" | "d"
 Expression: Opcode Args
 Args: !SpaceArg*
 LabelDecl: Global? Label %":\n"
@@ -18,7 +19,8 @@ Literal: Char | Number | String
 LabelUse: %":" Label
 Reg: "bsp" | "bp" | "ip" | "cr" | "sp" | "a" | "b" | "c" | "d"
 Var: %Letter+
-Deref: %"[" Displacement | !Arg %"]"
+Deref: %"[" Displacement | !Arg %"]" DerefSize?
+DerefSize: "B" | "W" | "D"
 
 # Displacements
 Displacement: !Arg Operator !Displacement | !Arg

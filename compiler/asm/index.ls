@@ -8,6 +8,7 @@ require! {
   \tiny-parser : tiny
   \../../common/Argument
   \../../common/Instruction
+  \../../vm/Ram
 }
 
 inspect = -> console.log util.inspect it, {depth: null}
@@ -20,7 +21,7 @@ class Compiler
     @globals = {}
     @labels = {}
 
-    @currAddr = 3
+    @currAddr = 4
 
     @lines = []
     async.eachSeries args, (file, done) ~>
@@ -51,26 +52,38 @@ class Compiler
           @parse it
 
   parseVarDecl: ->
-    idx = 0
-    if it.children.length is 2
-      idx = 1
-      @variables[it.children[0].literal] = @currAddr
+    idx = 1
+    # inspect it
+    size = switch it.children.0.literal
+      | 'db' => 1
+      | 'dw' => 2
+      | 'dd' => 4
+
+    val = null
+
+    if it.children.length is 3
+      idx = 2
+      @variables[it.children[1].literal] = @currAddr
 
     if it.contains \Number
-      @lines.push [it.children[idx].literal]
-      @currAddr += 1
+      val = Ram.intToBytes +it.children[idx].literal
+      val = (map (-> 0), [0 til size - val.length]) ++ val
+      @currAddr += size
 
-    if it.contains \String
+    else if it.contains \String
       it.children[idx].literal .= replace '\\n' '\n'
-      @lines.push (map (.charCodeAt(0)), it.children[idx].literal[1 til -1]) ++ [0]
+      val = (map (.charCodeAt(0)), it.children[idx].literal[1 til -1]) ++ [0]
 
       @currAddr += it.children[idx].literal.length - 1
+
+    @lines.push val
 
   parseExpression: ->
     @newExpr = []
     @parse it
     @lines.push tmp = Instruction.compile @newExpr
     @currAddr += tmp.length
+    @currAddr += (tmp |> filter (is-type \Function)).length
 
   parseVar: (node, deref = false) ->
     throw new Error "Unknown variable name: #{node.literal}" if not @variables[node.literal]?
@@ -115,7 +128,7 @@ class Compiler
 
       else if arg.symbol is \Literal
 
-        if arg.contains \Number and +arg.literal > 127 or +arg.literal < 0
+        if arg.contains \Number and +arg.literal > 2^16 / 2 - 1 or +arg.literal < 0
           throw new Error "Pointer displacement out of range : #{arg.literal}"
 
         if arg.left!?literal is \-
@@ -137,6 +150,14 @@ class Compiler
 
   parseDeref: (it, recur = false) ->
     val = null
+    size = 2
+
+    if it.children[*-1].symbol is \DerefSize
+      char = it.children[*-1].literal
+      size = switch char
+        | "B" => 1
+        | "W" => 2
+        | "D" => 4
 
     if it.children.0.symbol is \Deref
       val = @parseDeref it.children.0, true
@@ -155,7 +176,7 @@ class Compiler
       # @parseVar it.children[0]
 
     else if it.contains \Literal
-      if it.contains \Number and +it.children.0.literal > 127 or +it.children.0.literal < 0
+      if it.contains \Number and +it.children.0.literal > 2^16 / 2 - 1 or +it.children.0.literal < 0
         throw new Error "Pointer displacement out of range : #{it.children.0.literal}"
 
       val = [new Argument.Literal it.children.0.literal]
@@ -164,9 +185,9 @@ class Compiler
 
     # inspect val
     if recur
-      [new Argument.Pointer val]
+      [new Argument.Pointer val, size]
     else
-      @newExpr.push new Argument.Pointer val
+      @newExpr.push new Argument.Pointer val, size
 
   parseLabelUse: (node) ->
     curFile = @currentFile
