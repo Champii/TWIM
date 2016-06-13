@@ -72,7 +72,9 @@ class Div extends Instruction
 class Inc extends Instruction
 
   @register 1
-  process: -> @args.0.set @args.0.get! + 1
+  process: ->
+    # console.log \INC @args
+    @args.0.set @args.0.get! + 1
 
 class Dec extends Instruction
 
@@ -95,7 +97,7 @@ class Call extends Instruction
 
   @register 1
   process: ->
-    Stack.push Register.ip.val + 1
+    Stack.push Register.ip.val + 2
     Stack.push Register.bp.val
     Register.bp.val = Register.sp.val
     Register.ip.val = @args.0.get! - @size
@@ -106,6 +108,7 @@ class Ret extends Instruction
   process: ->
     Register.bp.val = Stack.pop!
     Register.ip.val = Stack.pop!
+    # console.log 'RET', Register.bp, Register.ip
 
 class Fail extends Instruction
 
@@ -117,6 +120,7 @@ class Outb extends Instruction
 
   @register 2
   process: ->
+    # console.log 'OUTB???' @args
     IOPorts.getByAddr(@args.0.get!).write @args.0.get!, @args.1.get!
 
 class Halt extends Instruction

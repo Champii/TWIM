@@ -1,12 +1,13 @@
-db lol 1
-db ok 'Is equal\n'
-db nok 'Isnt equal\n'
-db next 'To do next...\n'
-db end 'This is the end\n'
+dw lol 1
+db equal 'Is equal\n'
+db nequal 'Isnt equal\n'
+db ptdr 'To do next...\n'
+db toto 'This is the end\n'
 
 global start:
-  put 240 sp
-  put sp bp
+  put 500 bsp
+  put bsp sp
+  put bsp bp
 
   cmp [lol] 1
 
@@ -14,26 +15,26 @@ global start:
   jneq :nok
 
   ok:
-    push ok
+    push equal
     call :putstr
     pop
     jump :next
 
   nok:
-    push nok
+    push nequal
     call :putstr
     pop
     jump :end
 
 end:
-  push end
+  push toto
   call :putstr
   pop
   endd:
     jump :endd
 
 next:
-  push next
+  push ptdr
   call :putstr
   pop
   jump :end

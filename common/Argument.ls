@@ -36,7 +36,9 @@ class Argument.Literal extends Argument
     bytes = Ram.intToBytes +@val
     while bytes.length < @size
       bytes.unshift 0
-    # console.log 'LITERAL' bytes, @size
+    while bytes.length > Ram.BYTES
+      bytes.shift!
+    console.log 'LITERAL' @val, bytes, @size
     bytes
 
   get:     -> @val
@@ -46,6 +48,11 @@ class Argument.Register extends Argument
   @register!
   @size = 1
   size: 1
+
+  (val) ->
+    super val
+    if not TrueRegister[@val]? and not TrueRegister.regsArr[val]?
+      throw new Fault "Register: Unknown register opcode: #{val}"
 
   compile: -> TrueRegister[@val].typeFlag
   get:     -> TrueRegister.regsArr[@val].val
@@ -104,8 +111,8 @@ class Argument.Pointer extends Argument
       else
         val = Argument.read type, addr + size
         # console.log 'DECODE' val
-        # size += val.size
-        size++
+        size += val.size
+        # size++
       args.push val
       # size++
     args
@@ -118,6 +125,7 @@ class Argument.Pointer extends Argument
     if s < 0 or s > Ram.SIZE
       throw new Fault "Address out of memory : #{s}"
     # console.log 'GET' s
+    # console.log \PTRSIZE @ptrSize
     Ram[\get + @ptrSize * 8] s
 
   set:     ->

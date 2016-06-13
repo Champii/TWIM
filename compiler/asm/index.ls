@@ -73,6 +73,7 @@ class Compiler
     else if it.contains \String
       it.children[idx].literal .= replace '\\n' '\n'
       val = (map (.charCodeAt(0)), it.children[idx].literal[1 til -1]) ++ [0]
+      # console.log 'STRING' val
 
       @currAddr += it.children[idx].literal.length - 1
 
@@ -134,6 +135,7 @@ class Compiler
         if arg.left!?literal is \-
           arg.literal = ~arg.literal + 1
 
+        console.log 'DISPLACEMENT' arg.literal
         args.push new Argument.Literal arg.literal
 
       else if arg.symbol is \Reg
@@ -235,7 +237,7 @@ class Compiler
 
     @postParse!
 
-    # console.log @lines
+    console.log @lines
     @lines = Buffer.from flatten @lines
 
     fs.writeFile \./a.out @lines, (err, res) ->

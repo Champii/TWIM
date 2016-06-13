@@ -1,17 +1,17 @@
-db videoaddr 0
-db ursor 0
+dw videoaddr 0
+dw ursor 0
 
 global strlen:
   push c
 
-  put [bp-2] c
+  put [bp-4] c
 
   put 0 a
 
   loop2:
     inc c
     inc a
-    cmp [c] 0
+    cmp [c]B 0
     jneq :loop2
 
   pop c
@@ -20,14 +20,14 @@ global strlen:
 global putstr:
   push c
 
-  put [bp-2] c
+  put [bp-4] c
 
   loop:
-    push [c]
+    push [c]B
     call :aff
     pop
     inc c
-    cmp [c] 0
+    cmp [c]B 0
     jneq :loop
 
   pop c
@@ -37,7 +37,7 @@ global aff:
   push a
   push b
 
-  put [bp-2] a
+  put [bp-4] a
 
   put [videoaddr] b
   add [ursor] b
